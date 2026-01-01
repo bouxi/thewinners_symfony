@@ -8,8 +8,7 @@ use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
-
-
+use App\Enum\GuildRank;
 
 /**
  * @extends ServiceEntityRepository<User>
@@ -60,4 +59,23 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     //            ->getOneOrNullResult()
     //        ;
     //    }
+
+    /**
+     * Retourne la liste publique des membres de guilde :
+     * - Tous les users dont le rank != VISITOR
+     * - Et on charge aussi leur candidature (Application) pour classe/spé
+     */
+    public function findPublicGuildMembers(): array
+    {
+        return $this->createQueryBuilder('u')
+            ->leftJoin('u.guildApplication', 'a')   // relation OneToOne User -> Application
+            ->addSelect('a')                       // évite le lazy loading en boucle
+            ->andWhere('u.guildRank != :visitor')  // on exclut les simples visiteurs
+            ->setParameter('visitor', GuildRank::VISITOR)
+            ->orderBy('u.guildRank', 'ASC')        // ordre basique (optionnel)
+            ->addOrderBy('u.pseudo', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
 }
