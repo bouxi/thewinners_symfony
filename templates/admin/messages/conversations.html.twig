@@ -1,0 +1,86 @@
+{% extends 'admin/admin_base.html.twig' %}
+
+{% block title %}Admin - Conversations{% endblock %}
+{% block admin_title %}Messages{% endblock %}
+{% block admin_subtitle %}Conversations{% endblock %}
+
+{% block admin_content %}
+
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }} mb-3">{{ message }}</div>
+        {% endfor %}
+    {% endfor %}
+
+    <form method="get" class="d-flex gap-2 mb-3">
+        <input
+            type="text"
+            name="q"
+            class="form-control"
+            placeholder="Rechercher par email ou pseudo..."
+            value="{{ q }}"
+        >
+        <button class="btn btn-danger" type="submit">Rechercher</button>
+        <a class="btn btn-outline-light" href="{{ path('admin_messages_conversations') }}">Reset</a>
+    </form>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-dark table-hover align-middle mb-0">
+                    <thead>
+                    <tr>
+                        <th>Participants</th>
+                        <th>Dernière activité</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for c in conversations %}
+                        <tr>
+                            <td>
+                                <div class="fw-bold">
+                                    {{ c.userOne.pseudo ?? c.userOne.email }}
+                                    <span class="text-muted">↔</span>
+                                    {{ c.userTwo.pseudo ?? c.userTwo.email }}
+                                </div>
+                                <div class="small text-muted">
+                                    {{ c.userOne.email }} • {{ c.userTwo.email }}
+                                </div>
+                            </td>
+                            <td>
+                                {% if c.updatedAt is defined and c.updatedAt %}
+                                    {{ c.updatedAt|date('d/m/Y H:i') }}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <a class="btn btn-sm btn-outline-light"
+                                   href="{{ path('admin_messages_conversation_show', {id: c.id}) }}">
+                                    Voir
+                                </a>
+
+                                <form method="post"
+                                      action="{{ path('admin_messages_conversation_delete', {id: c.id}) }}"
+                                      class="d-inline"
+                                      onsubmit="return confirm('Supprimer cette conversation ?');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete_conversation_' ~ c.id) }}">
+                                    <button class="btn btn-sm btn-danger" type="submit">Supprimer</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="3" class="text-center text-muted py-4">
+                                Aucune conversation trouvée.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

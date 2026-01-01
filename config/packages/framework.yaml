@@ -2,6 +2,16 @@
 framework:
     secret: '%env(APP_SECRET)%'
 
+    rate_limiter:
+        raid_create:
+            policy: 'fixed_window'
+            limit: 3
+            interval: '1 minute'
+        raid_signup:
+            policy: 'fixed_window'
+            limit: 6
+            interval: '1 minute'
+
     # Note that the session will be started ONLY if you read or write from it.
     session: true
 

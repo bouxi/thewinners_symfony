@@ -1,0 +1,23 @@
+{% extends 'admin/admin_base.html.twig' %}
+
+{% block title %}Modifier grade{% endblock %}
+
+{% block body %}
+    <h1 class="mb-3">Modifier le grade de guilde</h1>
+
+    <div class="card p-3">
+        <p class="mb-2">
+            <strong>Utilisateur :</strong> {{ user.email }}
+            {% if user.pseudo is defined %}
+                — <strong>Pseudo :</strong> {{ user.pseudo }}
+            {% endif %}
+        </p>
+
+        {{ form_start(form) }}
+        {{ form_row(form.guildRank) }}
+        <button class="btn btn-danger mt-2">Enregistrer</button>
+        {{ form_end(form) }}
+
+        <a class="btn btn-secondary mt-3" href="{{ path('admin_users_index') }}">⬅ Retour</a>
+    </div>
+{% endblock %}

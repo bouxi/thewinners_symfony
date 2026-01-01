@@ -1,0 +1,83 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Calendrier des raids{% endblock %}
+
+{% block body %}
+    <div class="container py-4">
+
+        {# ===== Header calendrier ===== #}
+        <div class="d-flex justify-content-between align-items-center mb-3 calendar-topbar">
+            <div class="calendar-title-wrap">
+                <h1 class="mb-0 text-center calendar-title">Calendrier des raids</h1>
+                <div class="text-muted small calendar-month">{{ month|format_datetime(pattern='MMMM yyyy', locale='fr')|capitalize }}</div>
+            </div>
+
+            <div class="d-flex gap-2 calendar-actions">
+                <a class="btn btn-outline-light calendar-nav-btn"
+                   href="{{ path('raids_calendar', {month: prevMonth|date('Y-m')}) }}">←</a>
+
+                <a class="btn btn-outline-light calendar-nav-btn"
+                   href="{{ path('raids_calendar', {month: nextMonth|date('Y-m')}) }}">→</a>
+
+                <a class="btn btn-danger calendar-create-btn"
+                   href="{{ path('raids_new') }}">Créer un raid</a>
+            </div>
+        </div>
+
+
+        {% set startOfGrid = (month|date('N') - 1) %}
+        {% set daysInMonth = month|date('t') %}
+        {% set totalCells = 42 %}
+
+        {# ===== Jours de la semaine ===== #}
+        <div class="calendar-weekdays">
+            {% for dayName in ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'] %}
+                <div class="calendar-weekday">{{ dayName }}</div>
+            {% endfor %}
+        </div>
+
+        {# ===== Grille calendrier ===== #}
+        <div class="calendar-grid mt-2">
+            {% for i in 0..(totalCells-1) %}
+                {% set dayNumber = i - startOfGrid + 1 %}
+                {% set isInMonth = dayNumber >= 1 and dayNumber <= daysInMonth %}
+
+                {% if isInMonth %}
+                    {% set dateKey = month|date('Y-m') ~ '-' ~ '%02d'|format(dayNumber) %}
+                    {% set raids = raidsByDay[dateKey] ?? [] %}
+                {% else %}
+                    {% set dateKey = null %}
+                    {% set raids = [] %}
+                {% endif %}
+
+                <div class="calendar-cell {% if not isInMonth %}calendar-cell--out{% endif %}">
+                    <div class="calendar-cell__top">
+                        <div class="calendar-day">
+                            {% if isInMonth %}{{ dayNumber }}{% else %}—{% endif %}
+                        </div>
+                        <div class="calendar-date">
+                            {% if isInMonth %}{{ dateKey }}{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="calendar-cell__content">
+                        {% if raids|length > 0 %}
+                            {% for raid in raids %}
+                                <a class="calendar-raid"
+                                   href="{{ path('raids_show', {id: raid.id}) }}">
+                                    <div class="calendar-raid__title">{{ raid.title }}</div>
+                                    <div class="calendar-raid__time">
+                                        {{ raid.startsAt|date('H:i') }} → {{ raid.endsAt|date('H:i') }}
+                                    </div>
+                                </a>
+                            {% endfor %}
+                        {% else %}
+                            <div class="calendar-empty">—</div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+    </div>
+{% endblock %}

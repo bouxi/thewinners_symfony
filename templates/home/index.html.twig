@@ -1,0 +1,70 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}TheWinners — Guilde Horde Wrath 3.3.5{% endblock %}
+
+{% block body %}
+    {# SECTION HERO AVEC IMAGE DE FOND #}
+    <section
+        class="vh-100 d-flex align-items-center">
+        <div class="container">
+            <div class="row justify-content-start">
+                <div class="col-lg-6">
+                    <h1 class="display-4 fw-bold mb-3">
+                        TheWinners
+                    </h1>
+                    <p class="lead mb-4">
+                        Guilde Horde sur serveur privé Wrath of the Lich King (3.3.5).<br>
+                        Raids, PvE, entraide et bonne ambiance.
+                    </p>
+
+                    {% if app.user %}
+                        {# Utilisateur connecté #}
+                        <p class="mb-3">
+                            Connecté en tant que <strong>{{ app.user.pseudo }}</strong>
+                            — grade : <strong>{{ app.user.guildRank.label() }}</strong>.
+                        </p>
+
+                        <a href="{{ path('app_profile') }}" class="btn btn-danger btn-lg me-2 mb-2">
+                            Accéder à mon profil
+                        </a>
+
+                        {# Plus tard : lien vers /guild ou /apply selon le grade #}
+                        {# Exemple : #}
+                        {# {% if is_granted('ROLE_MEMBER') %} #}
+                        {#     <a href="{{ path('app_guild_dashboard') }}" class="btn btn-outline-light btn-lg mb-2">Tableau de bord de guilde</a> #}
+                        {# {% endif %} #}
+
+                    {% else %}
+                        {# Visiteur non connecté #}
+                        <a href="{{ path('app_register') }}" class="btn btn-danger btn-lg me-2 mb-2">
+                            Rejoindre la guilde
+                        </a>
+                        <a href="{{ path('app_login') }}" class="btn btn-outline-light btn-lg mb-2">
+                            Déjà membre ? Connexion
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {# SECTION INFO RAPIDE (optionnelle) #}
+    <section class="py-5 bg-dark">
+        <div class="container">
+            <div class="row text-center">
+                <div class="col-md-4 mb-3">
+                    <h2 class="h4 text-danger">PvE</h2>
+                    <p class="text-secondary mb-0">Raids organisés, progression, entraide entre membres.</p>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <h2 class="h4 text-danger">Communauté</h2>
+                    <p class="text-secondary mb-0">Discord actif, bonnes vibes, respect et fun avant tout.</p>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <h2 class="h4 text-danger">Guides</h2>
+                    <p class="text-secondary mb-0">Guides de classes, astuces, optimisation pour Wrath 3.3.5.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

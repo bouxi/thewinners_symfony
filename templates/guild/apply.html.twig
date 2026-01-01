@@ -1,0 +1,121 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Postuler{% endblock %}
+
+{% block body %}
+    <div class="container py-4">
+
+        {% for label, messagesFlash in app.flashes %}
+            {% for message in messagesFlash %}
+                <div class="alert alert-{{ label }} mb-3">{{ message }}</div>
+            {% endfor %}
+        {% endfor %}
+
+            <h1 class="mb-2 display-5">Postuler chez les TheWinners</h1>
+            <p class="mb-4" style="font-size: 20px;">
+                Petite guilde familiale — dis-nous ce que tu joues et pourquoi tu veux nous rejoindre 🙂
+            </p>
+
+        <div class="card bg-dark border-danger shadow-lg guild-apply-card">
+            <form method="post" action="{{ path('guild_apply') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('guild_apply') }}">
+
+                <div class="mb-3">
+                    <label class="form-label text-light">Classe</label>
+                    <select id="classSelect" name="class" class="form-select" required>
+                        <option value="">— Choisir une classe —</option>
+                        {% for className, specs in wow %}
+                            <option value="{{ className }}" {% if old.class == className %}selected{% endif %}>
+                                {{ className }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-light">Spécialisation</label>
+                    <select id="specSelect" name="specialization" class="form-select" required disabled>
+                        <option value="">— Choisir d’abord une classe —</option>
+                    </select>
+                    <div class="form-text">La liste se met à jour selon la classe choisie.</div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-light">Motivation</label>
+                    <textarea name="motivation"
+                              class="form-control"
+                              rows="5"
+                              required
+                              placeholder="Dis-nous ce que tu recherches : ambiance chill, raids, entraide, etc.">{{ old.motivation }}</textarea>
+                </div>
+
+                <button class="btn btn-danger">Envoyer ma candidature</button>
+            </form>
+        </div>
+    </div>
+
+    {# ✅ On met les données wow en JSON (propre, pas de HTML caché) #}
+    <script id="wow-data" type="application/json">{{ wow|json_encode(constant('JSON_UNESCAPED_UNICODE'))|raw }}</script>
+
+    <script>
+        (function () {
+            const wow = JSON.parse(document.getElementById('wow-data').textContent);
+
+            const classSelect = document.getElementById('classSelect');
+            const specSelect = document.getElementById('specSelect');
+
+            // Valeur “old” du serveur (si erreur)
+            const oldClass = {{ old.class|json_encode|raw }};
+            const oldSpec  = {{ old.specialization|json_encode|raw }};
+
+            function resetSpecs(placeholderText) {
+                specSelect.innerHTML = '';
+                const opt = document.createElement('option');
+                opt.value = '';
+                opt.textContent = placeholderText;
+                specSelect.appendChild(opt);
+                specSelect.disabled = true;
+            }
+
+            function fillSpecsForClass(className, selectedSpec = '') {
+                const specs = wow[className] || [];
+
+                specSelect.innerHTML = '';
+                const first = document.createElement('option');
+                first.value = '';
+                first.textContent = '— Choisir une spécialisation —';
+                specSelect.appendChild(first);
+
+                specs.forEach((spec) => {
+                    const opt = document.createElement('option');
+                    opt.value = spec;
+                    opt.textContent = spec;
+                    if (selectedSpec && selectedSpec === spec) opt.selected = true;
+                    specSelect.appendChild(opt);
+                });
+
+                specSelect.disabled = false;
+            }
+
+            // Quand on change de classe => on recharge les spés
+            classSelect.addEventListener('change', () => {
+                const c = classSelect.value;
+
+                if (!c || !wow[c]) {
+                    resetSpecs('— Choisir d’abord une classe —');
+                    return;
+                }
+
+                fillSpecsForClass(c, '');
+            });
+
+            // ✅ Au chargement : si on a une oldClass, on remplit direct
+            if (oldClass && wow[oldClass]) {
+                classSelect.value = oldClass;
+                fillSpecsForClass(oldClass, oldSpec || '');
+            } else {
+                resetSpecs('— Choisir d’abord une classe —');
+            }
+        })();
+    </script>
+{% endblock %}

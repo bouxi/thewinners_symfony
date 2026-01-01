@@ -1,0 +1,24 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Conversation{% endblock %}
+
+{% block body %}
+    <div class="container py-4">
+        <h1>Conversation #{{ conversation.id }}</h1>
+
+        <div class="border rounded p-3 mb-3" style="min-height: 250px;">
+            {% for m in conversation.messages %}
+                <div class="mb-2">
+                    <strong>{{ m.sender.email }}</strong>
+                    <span class="text-muted small">{{ m.createdAt|date('d/m/Y H:i') }}</span><br>
+                    {{ m.content }}
+                </div>
+            {% endfor %}
+        </div>
+
+        <form method="post">
+            <textarea name="content" class="form-control mb-2" rows="3" placeholder="Écrire un message…"></textarea>
+            <button class="btn btn-danger">Envoyer</button>
+        </form>
+    </div>
+{% endblock %}

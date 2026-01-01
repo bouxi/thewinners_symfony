@@ -1,0 +1,88 @@
+<footer class="tw-footer mt-auto border-top border-danger">
+    <div class="container py-4">
+
+        <div class="row g-4 align-items-start">
+
+            {# Bloc identité #}
+            <div class="col-12 col-lg-4">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <img src="{{ asset('/images/icons/icons8-world-of-warcraft-48.png') }}"
+                         alt="TheWinners" width="28" height="28">
+                    <div class="fw-bold text-danger">TheWinners</div>
+                </div>
+
+                <div class="small">
+                    Guilde Horde — WoW 3.3.5 • Communauté • Raids • Entraide
+                </div>
+
+                <div class="mt-3 d-flex flex-wrap gap-2">
+                    <span class="badge text-bg-danger">Horde</span>
+                    <span class="badge text-bg-dark border">PvE</span>
+                    <span class="badge text-bg-dark border">WotLK</span>
+                </div>
+            </div>
+
+            {# Liens #}
+            <div class="col-6 col-lg-2">
+                <div class="fw-semibold mb-2">Guilde</div>
+                <ul class="list-unstyled small mb-0">
+                    <li><a class="tw-footer-link" href="{{ path('app_home') }}">Accueil</a></li>
+                    {# Active quand tu crées ces routes #}
+                    {# <li><a class="tw-footer-link" href="{{ path('guild_news') }}">News</a></li> #}
+                    {# <li><a class="tw-footer-link" href="{{ path('guild_members') }}">Membres</a></li> #}
+                    <li><a class="tw-footer-link" href="{{ path('guild_apply') }}">Postuler</a></li>
+                </ul>
+            </div>
+
+            <div class="col-6 col-lg-2">
+                <div class="fw-semibold mb-2">Guides</div>
+                <ul class="list-unstyled small mb-0">
+                    {# Active quand tu crées ces routes #}
+                    {# <li><a class="tw-footer-link" href="{{ path('guides_index') }}">Guides de classes</a></li> #}
+                    <li><a class="tw-footer-link" href="#">Guides de classes</a></li>
+                    <li><a class="tw-footer-link" href="#">Macros</a></li>
+                    <li><a class="tw-footer-link" href="#">Addons</a></li>
+                </ul>
+            </div>
+
+            {# Stats #}
+            <div class="col-12 col-lg-4">
+                <div class="fw-semibold mb-2">Stats</div>
+
+                <div class="row g-2">
+                    <div class="col-6">
+                        <div class="tw-stat">
+                            <div class="tw-stat-label">Membres</div>
+                            <div class="tw-stat-value">{{ footer_stats.members ?? '—' }}</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="tw-stat">
+                            <div class="tw-stat-label">Raids à venir</div>
+                            <div class="tw-stat-value">{{ footer_stats.upcoming_raids ?? 'raids_show' }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-3 d-flex gap-2 flex-wrap">
+                    <a class="btn btn-sm btn-outline-danger" href="{{ path('app_messages') }}">Messages</a>
+                    {# Active quand route calendrier #}
+                    {# <a class="btn btn-sm btn-outline-light" href="{{ path('raids_calendar') }}">Calendrier raids</a> #}
+                    <a class="btn btn-sm btn-outline-light" href="#">Calendrier raids</a>
+                </div>
+            </div>
+        </div>
+
+        <hr class="border-danger opacity-25 my-4">
+
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-2 small text-muted">
+            <div>© {{ "now"|date("Y") }} TheWinners — For the Horde.</div>
+            <div class="d-flex gap-3">
+                <a class="tw-footer-link" href="#">Discord</a>
+                <a class="tw-footer-link" href="#">Contact</a>
+                <a class="tw-footer-link" href="#">Mentions légales</a>
+            </div>
+        </div>
+
+    </div>
+</footer>

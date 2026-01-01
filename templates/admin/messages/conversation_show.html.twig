@@ -1,0 +1,128 @@
+{% extends 'admin/admin_base.html.twig' %}
+
+{% block title %}Admin - Conversation{% endblock %}
+{% block admin_title %}Messages{% endblock %}
+{% block admin_subtitle %}Conversation #{{ conversation.id }}{% endblock %}
+
+{% block admin_content %}
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <div class="fw-bold">
+                {{ conversation.userOne.pseudo ?? conversation.userOne.email }}
+                <span class="text-muted">↔</span>
+                {{ conversation.userTwo.pseudo ?? conversation.userTwo.email }}
+            </div>
+            <div class="small text-muted">
+                {{ conversation.userOne.email }} • {{ conversation.userTwo.email }}
+            </div>
+        </div>
+
+        <a class="btn btn-outline-light" href="{{ path('admin_messages_conversations') }}">
+            ← Retour
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            {% set msgs = conversation.messages ?? [] %}
+
+            {% if msgs|length == 0 %}
+                <div class="text-muted">Aucun message dans cette conversation.</div>
+            {% else %}
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover align-middle mb-0">
+                        <thead>
+                        <tr>
+                            <th>Expéditeur</th>
+                            <th>Contenu</th>
+                            <th>Date</th>
+                            <th class="text-end"></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for m in msgs %}
+                            <tr>
+                                <td class="fw-bold">
+                                    {{ m.sender.pseudo ?? m.sender.email }}
+                                </td>
+                                <td>
+                                    {{ m.content|default('')|striptags|slice(0, 80) }}{% if m.content|length > 80 %}…{% endif %}
+                                </td>
+                                <td>
+                                    {% if m.createdAt is defined and m.createdAt %}
+                                        {{ m.createdAt|date('d/m/Y H:i') }}
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    {# ✅ Bouton modale message complet #}
+                                    <button
+                                        type="button"
+                                        class="btn btn-sm btn-outline-light"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#messageModal"
+                                        data-message="{{ m.content|e('html_attr') }}"
+                                        data-sender="{{ (m.sender.pseudo ?? m.sender.email)|e('html_attr') }}"
+                                        data-date="{% if m.createdAt is defined and m.createdAt %}{{ m.createdAt|date('d/m/Y H:i') }}{% else %}—{% endif %}"
+                                    >
+                                        Voir
+                                    </button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {# =======================
+       ✅ MODALE Message complet
+       ======================= #}
+    <div class="modal fade" id="messageModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content bg-dark text-light border-secondary">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title">Message</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="small text-muted mb-2">
+                        <span id="modalSender"></span> • <span id="modalDate"></span>
+                    </div>
+                    <div class="p-3 rounded border border-secondary" style="white-space: pre-wrap;" id="modalContent"></div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Fermer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# =======================
+       ✅ JS modale (Bootstrap)
+       ======================= #}
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const modal = document.getElementById('messageModal');
+            if (!modal) return;
+
+            modal.addEventListener('show.bs.modal', (event) => {
+                const button = event.relatedTarget;
+                if (!button) return;
+
+                const message = button.getAttribute('data-message') || '';
+                const sender = button.getAttribute('data-sender') || '';
+                const date = button.getAttribute('data-date') || '';
+
+                document.getElementById('modalContent').textContent = message;
+                document.getElementById('modalSender').textContent = sender;
+                document.getElementById('modalDate').textContent = date;
+            });
+        });
+    </script>
+
+{% endblock %}

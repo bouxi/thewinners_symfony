@@ -1,0 +1,59 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Inscription — TheWinners{% endblock %}
+
+{% block body %}
+    <div class="container py-5">
+
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+
+                <div class="card bg-dark border-danger shadow-lg">
+                    <div class="card-header bg-black border-bottom border-danger text-center py-3">
+                        <h2 class="text-danger fw-bold mb-0">
+                            Créer un compte
+                        </h2>
+                        <small class="text-secondary">Rejoignez la Horde !</small>
+                    </div>
+
+                    <div class="card-body p-4">
+
+                        {{ form_start(registrationForm) }}
+
+                        <div class="mb-3">
+                            {{ form_label(registrationForm.email, 'Adresse e-mail', {'label_attr': {'class': 'form-label fw-bold text-light'}}) }}
+                            {{ form_widget(registrationForm.email, {'attr': {'class': 'form-control bg-black text-light border-danger'}}) }}
+                            {{ form_errors(registrationForm.email) }}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form_label(registrationForm.pseudo, 'Pseudo', {'label_attr': {'class': 'form-label fw-bold text-light'}}) }}
+                            {{ form_widget(registrationForm.pseudo, {'attr': {'class': 'form-control bg-black text-light border-danger'}}) }}
+                            {{ form_errors(registrationForm.pseudo) }}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form_label(registrationForm.plainPassword, 'Mot de passe', {'label_attr': {'class': 'form-label fw-bold text-light'}}) }}
+                            {{ form_widget(registrationForm.plainPassword, {'attr': {'class': 'form-control bg-black text-light border-danger'}}) }}
+                            {{ form_errors(registrationForm.plainPassword) }}
+                        </div>
+
+                        <div class="form-check mb-3">
+                            {{ form_widget(registrationForm.agreeTerms, {'attr': {'class': 'form-check-input'}}) }}
+                            {{ form_label(registrationForm.agreeTerms, null, {'label_attr': {'class': 'form-check-label'}}) }}
+                            {{ form_errors(registrationForm.agreeTerms) }}
+                        </div>
+
+                        <button type="submit" class="btn btn-danger w-100 fw-bold mt-2">
+                            M'inscrire
+                        </button>
+
+                        {{ form_end(registrationForm) }}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+{% endblock %}

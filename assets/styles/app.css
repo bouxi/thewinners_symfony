@@ -1,3 +1,470 @@
+html, body {
+    height: 100%;
+    font-family: "Comic Sans MS", cursive;
+
+}
+
+
+
 body {
-    background-color: skyblue;
+    display: flex;
+    flex-direction: column;
+    color: white;
+    background: transparent; /* ⬅️ laisse l’image de html visible */
+
+    /* IMPORTANT : crée un contexte pour que ::before puisse être derrière le contenu */
+   /* position: relative; */
+
+    /* ton fond + réglages d’affichage */
+    /*
+    background-size: cover;
+    min-height: 100vh;
+    margin: 0;
+    */
+
+    /* très important */
+    background: url("../images/orgri.jpg") no-repeat fixed center center;
+}
+
+.navbar ul {
+    list-style: none;
+    display: flex;
+    gap: 20px;
+    padding: 0;
+    margin: 0;
+    justify-content: center;
+}
+
+.container-fluid {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.navbar {
+    background-color: rgba(0, 0, 0, 0.40);
+    border-radius: 0 0 15px 15px;
+}
+
+.navbar-brand img {
+    height: 48px;
+}
+
+nav {
+    height: 70px;
+    width: 100%;
+}
+
+.section {
+    text-align: center;
+    padding-top: 80px;
+}
+
+ul {
+    list-style-type: none;
+}
+
+.navbar a {
+    color: white;
+}
+
+.navbar a:hover {
+    color: #f39c12;
+}
+
+.container {
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.main {
+    background-color: rgba(0, 0, 0, 0.33);
+    border-radius: 15px;
+}
+
+h2, h3 {
+    color: #f39c12;
+}
+
+.btn-primary, .btn-success, .btn-danger, .btn-warning {
+    margin: 5px;
+}
+
+a {
+    text-decoration: unset;
+}
+
+a:hover {
+    text-decoration: underline;
+    text-shadow: black 0.1em 0.1em 0.2em;
+}
+
+.navbar-brand img {
+    transition: transform 0.2s ease;
+}
+
+.navbar-brand:hover img {
+    transform: scale(1.1);
+}
+
+
+/* Footer Horde / WoW */
+.tw-footer {
+    background: transparent;            /* ⬅️ important */
+    position: relative;
+}
+
+/* on met ton dégradé en overlay, au-dessus de l'image de fond */
+.tw-footer::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(800px 240px at 20% 0%, rgba(255, 0, 0, 0.15), transparent 60%),
+        radial-gradient(600px 220px at 80% 20%, rgba(255, 120, 0, 0.12), transparent 55%),
+        linear-gradient(180deg, rgba(0,0,0,0.65), rgba(0,0,0,0.9));
+    z-index: 0;
+    pointer-events: none;
+    border-top: 1px solid rgba(255, 0, 0, 0.35); /* si tu veux garder un bord */
+}
+
+/* contenu du footer au-dessus */
+.tw-footer > * {
+    position: relative;
+    z-index: 1;
+}
+
+
+/* ================================
+   Dropdown utilisateur (navbar)
+   ================================ */
+
+.user-dropdown {
+    background-color: #0f1113;        /* dark */
+    border: 1px solid #8b1e1e;         /* rouge discret */
+    border-radius: 8px;
+    padding: 0.4rem 0;
+    min-width: 220px;
+
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+}
+
+/* items */
+.user-dropdown .dropdown-item {
+    color: #e6e6e6;
+    padding: 0.6rem 1rem;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+/* hover */
+.user-dropdown .dropdown-item:hover,
+.user-dropdown .dropdown-item:focus {
+    background-color: #8b1e1e;
+    color: #fff;
+}
+
+/* divider */
+.user-dropdown .dropdown-divider {
+    border-color: rgba(255,255,255,0.08);
+}
+
+/* lien danger */
+.user-dropdown .dropdown-item.text-danger {
+    color: #ff4d4d;
+}
+
+.user-dropdown .dropdown-item.text-danger:hover {
+    background-color: #ff4d4d;
+    color: #fff;
+}
+
+.avatar-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #8b1e1e;
+    color: #fff;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+}
+
+.dropdown-menu {
+    opacity: 0;
+    transform: translateY(5px);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.dropdown-menu.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+
+
+
+/* Overlay sombre (au-dessus de l'image, mais sous le contenu) */
+body::before {
+    position: absolute;     /* ⬅️ PAS fixed */
+    inset: 0;
+    min-height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 0;
+    pointer-events: none;
+}
+
+/*
+main, header, footer, nav {
+    position: relative;
+    z-index: 1;
+}
+*/
+
+
+.form-check-label,
+.form-check-label a {
+    color: #ff4d4d !important;
+}
+
+header,
+main,
+footer {
+    position: relative;
+    z-index: 1;
+}
+
+/* =======================
+   Calendrier raids (grid)
+   ======================= */
+
+.calendar-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+}
+
+.calendar-weekday {
+    text-align: center;
+    font-weight: 700;
+    color: #ff4d4d;
+    font-size: 0.9rem;
+    padding: 6px 0;
+    background: rgba(0,0,0,0.35);
+    border: 1px solid rgba(255, 0, 0, 0.25);
+    border-radius: 10px;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+}
+
+.calendar-cell {
+    min-height: 110px; /* ⬅️ taille plus petite qu’avant */
+    background: rgba(0,0,0,0.45);
+    border: 1px solid rgba(255,255,255,0.35);
+    border-radius: 10px;
+    padding: 8px;
+    overflow: hidden;
+}
+
+.calendar-cell--out {
+    opacity: 0.35;
+}
+
+.calendar-cell__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 6px;
+}
+
+.calendar-day {
+    font-weight: 800;
+    color: rgba(255,255,255,0.9);
+}
+
+.calendar-date {
+    font-size: 0.7rem;
+    color: rgba(255,255,255,0.45);
+}
+
+.calendar-cell__content {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.calendar-raid {
+    display: block;
+    padding: 6px 8px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 77, 77, 0.65);
+    background: rgba(0,0,0,0.35);
+    text-decoration: none;
+}
+
+.calendar-raid__title {
+    color: rgba(255,255,255,0.95);
+    font-weight: 700;
+    font-size: 0.85rem;
+    line-height: 1.1;
+}
+
+.calendar-raid__time {
+    color: rgba(255,255,255,0.55);
+    font-size: 0.75rem;
+}
+
+.calendar-empty {
+    color: rgba(255,255,255,0.25);
+    font-size: 0.9rem;
+}
+
+/* Responsive : en mobile on passe en 2 colonnes puis 1 */
+@media (max-width: 992px) {
+    .calendar-weekdays,
+    .calendar-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 576px) {
+    .calendar-weekdays,
+    .calendar-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* barre du calendrier (sans changer le header global du site) */
+.calendar-topbar{
+    padding: 10px 12px;
+    border-radius: 14px;
+    background: rgba(0,0,0,0.45);
+    border: 1px solid rgba(255, 0, 0, 0.22);
+    backdrop-filter: blur(6px);
+}
+
+/* titre + mois plus visibles */
+.calendar-title{
+    font-size: 2rem;
+    text-shadow: 0 2px 14px rgba(0,0,0,0.9);
+}
+
+.calendar-month{
+    display: inline-block;
+    margin-top: 6px;
+
+    padding: 6px 14px;
+    border-radius: 999px;
+
+    color: #ff4d4d !important;
+    font-weight: 800;
+    letter-spacing: 0.6px;
+
+    background: rgba(255, 77, 77, 0.14);
+    border: 1px solid rgba(255, 77, 77, 0.45);
+    box-shadow: 0 0 22px rgba(255, 0, 0, 0.18);
+    text-shadow: 0 0 14px rgba(255, 77, 77, 0.25);
+}
+
+/* boutons mois (← →) plus visibles */
+.calendar-nav-btn{
+    width: 46px;
+    height: 46px;
+    padding: 0;
+    border-radius: 12px;
+
+    font-size: 1.25rem;
+    font-weight: 900;
+    line-height: 46px;
+    text-align: center;
+}
+
+.calendar-nav-btn:hover{
+    border-color: rgba(255, 77, 77, 0.9);
+    box-shadow: 0 0 18px rgba(255, 77, 77, 0.35);
+}
+
+/* bouton créer un raid plus gros */
+.calendar-create-btn{
+    padding: 12px 18px;
+    font-size: 1.05rem;
+    font-weight: 800;
+    border-radius: 14px;
+    box-shadow: 0 10px 28px rgba(0,0,0,0.65);
+}
+
+.calendar-create-btn:hover{
+    box-shadow: 0 0 24px rgba(255, 77, 77, 0.35), 0 10px 28px rgba(0,0,0,0.65);
+}
+
+/* mobile: on empile sans casser ton header */
+@media (max-width: 768px){
+    .calendar-topbar{
+        flex-direction: column;
+        gap: 12px;
+        align-items: center !important;
+        text-align: center;
+    }
+
+    .calendar-actions{
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+}
+
+/* ============================= */
+/*  Formulaire de candidature   */
+/* ============================= */
+
+.guild-apply-card {
+    padding: 1.75rem; /* espace entre le cadre rouge et le contenu */
+    border-radius: 12px;
+}
+
+/* Espace vertical entre les blocs */
+.guild-apply-form .mb-3 {
+    margin-bottom: 1.25rem;
+}
+
+/* Labels */
+.guild-apply-form .form-label {
+    font-size: 0.9rem;          /* plus élégant */
+    font-weight: 600;
+    margin-bottom: 0.4rem;      /* évite qu’ils collent */
+    letter-spacing: 0.3rem;
+}
+
+/* Select & textarea : hauteur plus fine */
+.guild-apply-form .form-select,
+.guild-apply-form .form-control {
+    padding: 0.45rem 0.75rem;
+    font-size: 0.95rem;
+    background-color: #1f2428;
+    border-color: #444;
+    color: #f5f5f5;
+}
+
+/* Textarea : hauteur maîtrisée */
+.guild-apply-form textarea {
+    resize: vertical;
+    min-height: 110px;
+}
+
+/* Texte d’aide sous la spé */
+.guild-apply-form .form-text {
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+    color: #aaa;
+}
+
+.guild-apply-form .form-select:focus,
+.guild-apply-form .form-control:focus {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.15rem rgba(220, 53, 69, 0.25);
 }

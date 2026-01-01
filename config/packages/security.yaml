@@ -1,39 +1,65 @@
 security:
-    # https://symfony.com/doc/current/security.html#registering-the-user-hashing-passwords
+    # Hashage des mots de passe (auto = bcrypt/argon selon la config)
     password_hashers:
         Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
 
-    # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
+    # Chargement des utilisateurs depuis la BDD
     providers:
-        users_in_memory: { memory: null }
+        app_user_provider:
+            entity:
+                class: App\Entity\User
+                property: email   # on se connecte avec l'email
+
+    # Hiérarchie des rôles
+    role_hierarchy:
+        ROLE_ADMIN:     ['ROLE_OFFICER', 'ROLE_MEMBER', 'ROLE_USER']
+        ROLE_OFFICER:   ['ROLE_MEMBER', 'ROLE_USER']
+        ROLE_MEMBER:    ['ROLE_USER']
+        ROLE_GM:        ['ROLE_ADMIN']   # Maître de guilde = full access
+        ROLE_APPLICANT: ['ROLE_USER']
 
     firewalls:
         dev:
-            # Ensure dev tools and static assets are always allowed
+            # Profiler, WDT, assets -> jamais protégés
             pattern: ^/(_profiler|_wdt|assets|build)/
             security: false
+
         main:
             lazy: true
-            provider: users_in_memory
+            provider: app_user_provider
 
-            # Activate different ways to authenticate:
-            # https://symfony.com/doc/current/security.html#the-firewall
+            # Authentification via formulaire classique
+            form_login:
+                login_path: app_login    # nom de route pour la page de login
+                check_path: app_login    # même route pour le POST
+                # optionnel : où rediriger après login réussi
+                default_target_path: app_profile
 
-            # https://symfony.com/doc/current/security/impersonating_user.html
-            # switch_user: true
+            logout:
+                path: app_logout         # nom de route pour se déconnecter
+                target: app_home         # route après déconnexion (page d'accueil)
 
-    # Note: Only the *first* matching rule is applied
+    # Ordre important : la première règle qui matche gagne
     access_control:
-        # - { path: ^/admin, roles: ROLE_ADMIN }
-        # - { path: ^/profile, roles: ROLE_USER }
+        # Zone admin (GM / Officiers)
+        - { path: ^/admin,   roles: ROLE_ADMIN }
+        # Zone raids
+        - { path: ^/raids, roles: ROLE_USER }
+        # Zone officiers (gestion guilde, candidatures, etc.)
+        - { path: ^/officer, roles: ROLE_OFFICER }
+        # Zone membres de la guilde (pages internes)
+        - { path: ^/guild/application,   roles: ROLE_USER }
+        # Page profil accessible à tout utilisateur connecté
+        - { path: ^/profile, roles: ROLE_USER }
+        # Espace de suivi de candidature
+        - { path: ^/apply,   roles: ROLE_ADMIN }
 
 when@test:
     security:
         password_hashers:
-            # Password hashers are resource-intensive by design to ensure security.
-            # In tests, it's safe to reduce their cost to improve performance.
+            # En test, on diminue le coût (plus rapide pour PHPUnit)
             Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface:
                 algorithm: auto
-                cost: 4 # Lowest possible value for bcrypt
-                time_cost: 3 # Lowest possible value for argon
-                memory_cost: 10 # Lowest possible value for argon
+                cost: 4
+                time_cost: 3
+                memory_cost: 10

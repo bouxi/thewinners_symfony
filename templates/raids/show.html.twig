@@ -1,0 +1,95 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Raid{% endblock %}
+
+{% block body %}
+    <div class="container py-4">
+        <div class="d-flex justify-content-between align-items-start gap-2">
+            <div>
+                <h1 class="mb-1">{{ raid.title }}</h1>
+                <div class="text-muted">
+                    {{ raid.startsAt|date('d/m/Y H:i') }} → {{ raid.endsAt|date('d/m/Y H:i') }}
+                </div>
+                <div class="text-muted small">
+                    Créé par {{ raid.createdBy.pseudo }}
+                </div>
+            </div>
+            <a class="btn btn-outline-secondary" href="{{ path('raids_calendar') }}">← Calendrier</a>
+        </div>
+
+        {% if raid.description %}
+            <div class="mt-3 border rounded p-3 bg-black bg-opacity-50">
+                {{ raid.description|nl2br }}
+            </div>
+        {% endif %}
+
+        <hr class="border-danger opacity-25 my-4">
+
+        <div class="row g-4">
+            <div class="col-12 col-lg-5">
+                <h3>Inscription</h3>
+
+                {% if alreadySigned %}
+                    <form method="post" action="{{ path('raids_leave', {id: raid.id}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('raid_leave_' ~ raid.id) }}">
+                        <button class="btn btn-outline-warning"
+                                onclick="return confirm('Te désinscrire ?');">
+                            Se désinscrire
+                        </button>
+                    </form>
+                {% else %}
+                    <form method="post" action="{{ path('raids_signup', {id: raid.id}) }}" class="d-grid gap-2">
+                        <input type="hidden" name="_token" value="{{ csrf_token('raid_signup_' ~ raid.id) }}">
+
+                        <label class="form-label">Rôle</label>
+                        <select name="role" class="form-select" required>
+                            <option value="tank">Tank</option>
+                            <option value="heal">Heal</option>
+                            <option value="dps" selected>DPS</option>
+                        </select>
+
+
+                        <label class="form-label mt-2">Note (optionnel)</label>
+                        <textarea name="note" class="form-control" rows="3"
+                                  placeholder="Ex: je viens en reroll, je peux switch…"></textarea>
+
+                        <button class="btn btn-danger mt-2">S’inscrire</button>
+                    </form>
+                {% endif %}
+            </div>
+
+            <div class="col-12 col-lg-7">
+                <h3>Participants ({{ signups|length }})</h3>
+
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover align-middle">
+                        <thead>
+                        <tr>
+                            <th>Pseudo</th>
+                            <th>Rôle</th>
+                            <th>Note</th>
+                            <th class="text-end">Inscrit le</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for s in signups %}
+                            <tr>
+                                <td>{{ s.user.pseudo }}</td>
+                                <td class="text-capitalize">{{ s.role.value }}</td>
+                                <td class="text-muted small">{{ s.note ?? '—' }}</td>
+                                <td class="text-end text-muted small">{{ s.createdAt|date('d/m H:i') }}</td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-4">
+                                    Personne n’est inscrit pour le moment.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

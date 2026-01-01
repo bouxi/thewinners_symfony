@@ -1,0 +1,77 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Ma candidature{% endblock %}
+
+{% block body %}
+    <div class="container py-4">
+
+        {% for label, messagesFlash in app.flashes %}
+            {% for message in messagesFlash %}
+                <div class="alert alert-{{ label }} mb-3">{{ message }}</div>
+            {% endfor %}
+        {% endfor %}
+
+        <h1 class="mb-3">📄 Ma candidature</h1>
+
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="mb-2">
+                    <span class="text-muted">Statut :</span>
+                    {% set s = application.status ? application.status.value : 'pending' %}
+
+                    {% if s == 'accepted' %}
+                        <span class="badge bg-success">Acceptée</span>
+                    {% elseif s == 'rejected' %}
+                        <span class="badge bg-secondary">Rejetée</span>
+                    {% else %}
+                        <span class="badge bg-warning text-dark">En attente</span>
+                    {% endif %}
+                </div>
+
+                <div class="text-muted">
+                    Soumise le : {{ application.submittedAt ? application.submittedAt|date('d/m/Y H:i') : '—' }}
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="mb-3">💬 Messages avec l’équipe</h5>
+
+                {% if messages is empty %}
+                    <div class="text-muted">Aucun message pour l’instant.</div>
+                {% else %}
+                    <div class="d-flex flex-column gap-2 mb-3">
+                        {% for m in messages %}
+                            <div class="p-3 rounded border border-secondary">
+                                <div class="small text-muted mb-1">
+
+                                    {# ✅ ICI : on remplace m.sender.pseudo par le bloc candidat/admin #}
+                                    {% if m.sender and application.user and m.sender.id == application.user.id %}
+                                        👤 <strong>{{ m.sender.pseudo }}</strong>
+                                    {% else %}
+                                        🛡️ <strong>Admin</strong>
+                                    {% endif %}
+
+                                    • {{ m.createdAt|date('d/m/Y H:i') }}
+                                </div>
+
+                                <div style="white-space: pre-wrap;">{{ m.content }}</div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <form method="post" action="{{ path('guild_application_status') }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('application_reply') }}">
+
+                    <textarea name="content" class="form-control mb-2" rows="3"
+                              placeholder="Répondre à l’admin..."></textarea>
+
+                    <button class="btn btn-danger btn-sm">Envoyer</button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+{% endblock %}

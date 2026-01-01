@@ -1,0 +1,54 @@
+{% extends 'admin/admin_base.html.twig' %}
+
+{% block title %}Candidature{% endblock %}
+
+{% block body %}
+    <h1 class="mb-3">Candidature #{{ application.id }}</h1>
+
+    <div class="card bg-dark border-danger shadow-lg guild-apply-card">
+        <div class="card p-3 mb-4">
+            <p><strong>Utilisateur :</strong> {{ application.user.email }} ({{ application.user.pseudo }})</p>
+            <p><strong>Statut :</strong> {{ application.status.value }}</p>
+            <p><strong>Soumise le :</strong> {{ application.submittedAt|date('d/m/Y H:i') }}</p>
+        </div>
+
+        <h2 class="h4 mb-2 text-light">Messages liés à la candidature</h2>
+
+        <div class="card p-3">
+            {% if messages is empty %}
+                <p class="text-muted mb-0">Aucun message pour l’instant.</p>
+            {% else %}
+                {% for m in messages %}
+                    <div>
+                        <strong>{{ m.sender.pseudo }}</strong> - {{ m.createdAt|date('d/m/Y H:i') }}
+                        <div>{{ m.content }}</div>
+                    </div>
+                    {% if not loop.last %}<hr>{% endif %}
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <h3 class="h5 mt-4 text-light">✍️ Répondre au candidat</h3>
+
+        <form method="post"
+              action="{{ path('admin_applications_reply', {id: application.id}) }}"
+              class="card p-3 mt-2">
+
+            <input type="hidden" name="_token"
+                   value="{{ csrf_token('admin_reply_' ~ application.id) }}">
+
+            <textarea name="content"
+                      class="form-control mb-2"
+                      rows="3"
+                      placeholder="Réponse de l’admin..."></textarea>
+
+            <div class="text-end">
+                <button class="btn btn-dark btn-sm">
+                    Envoyer la réponse
+                </button>
+            </div>
+        </form>
+
+        <a class="btn btn-secondary mt-3" href="{{ path('admin_applications_index') }}">⬅ Retour</a>
+    </div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends 'admin/admin_base.html.twig' %}
+
+{% block title %}Messages | Admin{% endblock %}
+
+{% block body %}
+    <h1>📩 Messages</h1>
+
+    <table class="table table-dark table-hover mt-4">
+        <thead>
+        <tr>
+            <th>Expéditeur</th>
+            <th>Contenu</th>
+            <th>Date</th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for message in messages %}
+            <tr>
+                <td>{{ message.sender.username }}</td>
+                <td>{{ message.content|slice(0, 50) }}…</td>
+                <td>{{ message.createdAt|date('d/m/Y H:i') }}</td>
+                <td>
+                    <a href="#" class="btn btn-sm btn-outline-light">Voir</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="4" class="text-center text-muted">
+                    Aucun message
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

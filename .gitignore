@@ -1,12 +1,15 @@
-
+/.idea/
 ###> symfony/framework-bundle ###
 /.env.local
+/.env
+/.env.test
 /.env.local.php
 /.env.*.local
 /config/secrets/prod/prod.decrypt.private.php
 /public/bundles/
 /var/
 /vendor/
+/public/uploads/
 ###< symfony/framework-bundle ###
 
 ###> phpunit/phpunit ###
@@ -18,3 +21,4 @@
 /public/assets/
 /assets/vendor/
 ###< symfony/asset-mapper ###
+notes.html.twig

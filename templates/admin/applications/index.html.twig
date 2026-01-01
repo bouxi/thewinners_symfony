@@ -1,0 +1,139 @@
+{% extends 'admin/admin_base.html.twig' %}
+
+{% block title %}Admin - Candidatures{% endblock %}
+{% block admin_title %}Candidatures{% endblock %}
+{% block admin_subtitle %}Gestion des candidatures (filtre + actions rapides){% endblock %}
+
+{% block admin_content %}
+
+    <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+        <a class="btn btn-sm {% if status == '' %}btn-danger{% else %}btn-outline-danger{% endif %}"
+           href="{{ path('admin_applications_index') }}">
+            Toutes
+        </a>
+
+        <a class="btn btn-sm {% if status == 'pending' %}btn-danger{% else %}btn-outline-danger{% endif %}"
+           href="{{ path('admin_applications_index', {status: 'pending'}) }}">
+            En attente
+        </a>
+
+        <a class="btn btn-sm {% if status == 'accepted' %}btn-danger{% else %}btn-outline-danger{% endif %}"
+           href="{{ path('admin_applications_index', {status: 'accepted'}) }}">
+            Acceptées
+        </a>
+
+        <a class="btn btn-sm {% if status == 'rejected' %}btn-danger{% else %}btn-outline-danger{% endif %}"
+           href="{{ path('admin_applications_index', {status: 'rejected'}) }}">
+            Rejetées
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+
+            {% if applications is empty %}
+                <div class="text-muted">Aucune candidature pour ce filtre.</div>
+            {% else %}
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Utilisateur</th>
+                            <th>Classe</th>
+                            <th>Spé</th>
+                            <th>Statut</th>
+                            <th>Soumise le</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for a in applications %}
+                            {# a.status est un enum -> on récupère sa value #}
+                            {% set s = a.status ? a.status.value : 'pending' %}
+
+                            <tr>
+                                <td class="fw-semibold">#{{ a.id }}</td>
+
+                                <td>
+                                    {% if a.user is defined and a.user %}
+                                        {{ a.user.pseudo }}
+                                    {% else %}
+                                        <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+
+                                <td>{{ a.class ?? '—' }}</td>
+                                <td>{{ a.specialization ?? '—' }}</td>
+
+                                <td>
+                                    {% if s == 'accepted' %}
+                                        <span class="badge bg-success">acceptée</span>
+                                    {% elseif s == 'rejected' %}
+                                        <span class="badge bg-secondary">rejetée</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark">en attente</span>
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    {% if a.submittedAt is defined and a.submittedAt %}
+                                        {{ a.submittedAt|date('d/m/Y H:i') }}
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </td>
+
+                                <td class="text-end">
+                                    <div class="d-inline-flex gap-2">
+
+                                        {# ✅ ACCEPTER #}
+                                        <form method="post"
+                                              action="{{ path('admin_applications_set_status', {id: a.id}) }}">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('admin_app_set_status_' ~ a.id) }}">
+
+                                            {# ✅ On conserve le filtre actuel #}
+                                            <input type="hidden" name="current_status_filter" value="{{ status }}">
+
+                                            <input type="hidden" name="status" value="accepted">
+
+                                            <button class="btn btn-sm btn-outline-success"
+                                                    {% if s == 'accepted' %}disabled{% endif %}>
+                                                Accepter
+                                            </button>
+                                        </form>
+
+                                        {# ✅ REJETER #}
+                                        <form method="post"
+                                              action="{{ path('admin_applications_set_status', {id: a.id}) }}">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('admin_app_set_status_' ~ a.id) }}">
+
+                                            {# ✅ On conserve le filtre actuel #}
+                                            <input type="hidden" name="current_status_filter" value="{{ status }}">
+
+                                            <input type="hidden" name="status" value="rejected">
+
+                                            <button class="btn btn-sm btn-outline-secondary"
+                                                    {% if s == 'rejected' %}disabled{% endif %}>
+                                                Rejeter
+                                            </button>
+                                        </form>
+
+                                        {# ✅ VOIR (page détail + messages) #}
+                                        <a class="btn btn-sm btn-outline-dark"
+                                           href="{{ path('admin_applications_show', {id: a.id}) }}">
+                                            Voir
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+
+        </div>
+    </div>
+
+{% endblock %}

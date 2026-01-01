@@ -1,0 +1,156 @@
+{% extends 'base.html.twig' %}
+{% block title %}Messages{% endblock %}
+
+{% block body %}
+    <div class="container py-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1 class="mb-0">Messages</h1>
+            <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#newMessageModal">
+                Nouveau message
+            </button>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-12 col-lg-4">
+                <div class="border rounded bg-black bg-opacity-50">
+                    <div class="p-2 border-bottom"><strong>Conversations</strong></div>
+
+                    <div class="list-group list-group-flush">
+                        {% for row in conversations %}
+                            {% set c = row.conversation %}
+                            {% set other = c.otherUser(app.user) %}
+                            {% set isActive = activeConversation and c.id == activeConversation.id %}
+
+                            <a class="list-group-item list-group-item-action bg-transparent text-light {% if isActive %}border-danger{% endif %}"
+                               href="{{ path('app_messages', {c: c.id}) }}">
+
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="me-2">
+                                        <div class="fw-semibold">{{ other ? other.pseudo : '???' }}</div>
+                                        <div class="small text-muted">
+                                            {{ row.lastMessagePreview ?? '—' }}
+                                        </div>
+                                    </div>
+
+                                    <div class="text-end">
+                                        <div class="small text-muted">
+                                            {% if row.lastMessageAt %}{{ row.lastMessageAt|date('d/m H:i') }}{% endif %}
+                                        </div>
+
+                                        {% if row.unreadCount > 0 %}
+                                            <span class="badge bg-danger">{{ row.unreadCount }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </a>
+                        {% else %}
+                            <div class="p-3 text-muted">Aucune conversation.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-lg-8">
+                <div class="border rounded bg-black bg-opacity-50 d-flex flex-column" style="height: 70vh;">
+                    <div class="p-2 border-bottom">
+                        {% if activeConversation %}
+                            <strong>{{ activeConversation.otherUser(app.user).pseudo }}</strong>
+                        {% else %}
+                            <strong>Choisis une conversation</strong>
+                        {% endif %}
+                    </div>
+
+                    <div id="messagesScroll" class="flex-fill p-3 overflow-auto">
+                        {% if activeConversation %}
+                            {% for m in messages.items %}
+                                <div class="mb-2 d-flex {% if m.sender.id == app.user.id %}justify-content-end{% else %}justify-content-start{% endif %}">
+                                    <div class="px-3 py-2 rounded {% if m.sender.id == app.user.id %}bg-danger{% else %}bg-dark{% endif %}"
+                                         style="max-width: 75%;">
+                                        <div class="small">{{ m.content|nl2br }}</div>
+                                        <div class="text-end small opacity-75 mt-1">{{ m.createdAt|date('d/m H:i') }}</div>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="text-muted">Aucun message.</div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-muted">Sélectionne une conversation à gauche.</div>
+                        {% endif %}
+                    </div>
+
+                    {% if activeConversation %}
+                        <div class="p-2 border-top">
+                            <form method="post" action="{{ path('app_messages_send') }}" class="d-flex gap-2">
+                                <input type="hidden" name="_token" value="{{ csrf_token('message_send_' ~ activeConversation.id) }}">
+                                <input type="hidden" name="conversation_id" value="{{ activeConversation.id }}">
+
+                                <input type="text" name="content" class="form-control"
+                                       placeholder="Écrire un message..." autocomplete="off" required>
+                                <button class="btn btn-danger">Envoyer</button>
+                            </form>
+
+                            {% if messages.pages > 1 %}
+                                <div class="mt-2 small text-muted">
+                                    Page {{ page }}/{{ messages.pages }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="newMessageModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <form method="post" action="{{ path('app_messages_new') }}" class="modal-content bg-dark text-light">
+                <div class="modal-header">
+                    <h5 class="modal-title">Nouveau message</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <input type="hidden" name="_token" value="{{ csrf_token('message_new') }}">
+
+                    <label class="form-label">Destinataire (pseudo)</label>
+                    <input
+                        type="text"
+                        class="form-control"
+                        name="recipient_pseudo"
+                        list="guildPseudos"
+                        placeholder="Ex: Thrall, Garrosh..."
+                        autocomplete="off"
+                        required
+                    >
+
+                    <datalist id="guildPseudos">
+                        {% for u in guildUsers %}
+                            <option value="{{ u.pseudo }}"></option>
+                        {% endfor %}
+                    </datalist>
+
+
+                    <label class="form-label mt-3">Message</label>
+                    <textarea class="form-control" name="content" rows="4" required></textarea>
+
+                    <div class="small text-muted mt-2">
+                        Prochaine étape : remplacer par un select + recherche utilisateur.
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-outline-light" type="button" data-bs-dismiss="modal">Annuler</button>
+                    <button class="btn btn-danger" type="submit">Envoyer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        const box = document.getElementById('messagesScroll');
+        if (box) box.scrollTop = box.scrollHeight;
+    </script>
+{% endblock %}

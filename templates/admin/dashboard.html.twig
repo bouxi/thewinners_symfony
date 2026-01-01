@@ -1,0 +1,45 @@
+{% extends 'admin/admin_base.html.twig' %}
+
+{% block title %}Admin - Dashboard{% endblock %}
+{% block admin_title %}Dashboard{% endblock %}
+{% block admin_subtitle %}Vue d’ensemble (stats rapides){% endblock %}
+
+{% block admin_content %}
+    <div class="row g-3">
+        <div class="col-12 col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <div class="text-muted">Utilisateurs</div>
+                    <div class="fs-2 fw-bold">{{ usersCount }}</div>
+                    <a class="btn btn-sm btn-danger mt-2" href="{{ path('admin_users_index') }}">Gérer</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <div class="text-muted">Messages</div>
+                    <div class="fs-2 fw-bold">{{ messagesCount }}</div>
+                    <div class="small text-muted">Conversations enregistrées.</div>
+                    <a class="btn btn-sm btn-danger mt-2" href="{{ path('admin_messages_conversations') }}">Gérer</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <div class="text-muted">Candidatures</div>
+                    <div class="fs-2 fw-bold">{{ applicationsCount }}</div>
+
+                    <div class="small text-muted">
+                        {{ applicationsPending }} en attente
+                    </div>
+
+                    <a class="btn btn-sm btn-danger mt-2" href="{{ path('admin_applications_index') }}">Gérer</a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
