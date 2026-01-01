@@ -93,7 +93,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * Chemin relatif du fichier avatar (ex: uploads/avatars/xxx.png).
      */
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $avatar = null;
+    private ?string $avatar = 'images/default-avatar.png';
 
     /**
      * Flag "email vérifié" si tu mets un système de confirmation.
@@ -241,7 +241,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getAvatar(): ?string
     {
-        return $this->avatar;
+        return $this->avatar ?: 'images/default-avatar.png';
     }
 
     public function setAvatar(?string $avatar): self
