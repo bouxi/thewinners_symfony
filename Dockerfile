@@ -19,7 +19,7 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 RUN composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
 
 # Permissions (Symfony)
-RUN mkdir -p var/cache var/log && chmod -R 777 var
+RUN mkdir -p var/cache var/log && chown -R www-data:www-data var
 
 # Caddy/FrankenPHP écoutera sur le port Railway
 ENV APP_ENV=prod
