@@ -1,5 +1,9 @@
 :{$PORT} {
          root * /app/public
-         php_server
-         file_server
-         }
+
+         route {
+               try_files {path} {path}/ /index.php?{query}
+               php_server
+               file_server
+               }
+}
