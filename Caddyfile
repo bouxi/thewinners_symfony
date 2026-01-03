@@ -1,5 +1,5 @@
 :{$PORT} {
-    root * public
-    php_fastcgi unix//var/run/php/php-fpm.sock
-    file_server
-}
+         root * /app/public
+         php_server
+         file_server
+         }
