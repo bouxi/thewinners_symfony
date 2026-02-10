@@ -1,0 +1,12 @@
+{
+    "Guerrier": ["Armes", "Fureur", "Protection"],
+    "Paladin": ["Sacré", "Protection", "Vindicte"],
+    "Chasseur": ["Maîtrise des bêtes", "Précision", "Survie"],
+    "Voleur": ["Assassinat", "Combat", "Finesse"],
+    "Prêtre": ["Discipline", "Sacré", "Ombre"],
+    "Chevalier de la mort": ["Sang", "Givre", "Impie"],
+    "Chaman": ["Élémentaire", "Amélioration", "Restauration"],
+    "Mage": ["Arcane", "Feu", "Givre"],
+    "Démoniste": ["Affliction", "Démonologie", "Destruction"],
+    "Druide": ["Équilibre", "Farouche", "Restauration"]
+}
