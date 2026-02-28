@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Enum\RaidRole;
-use App\Entity\RaidEvent;
-use App\Entity\RaidSignup;
 
 /**
  * Service "source de vérité" pour :
@@ -24,36 +22,47 @@ final class RaidCompositionService
      * ✅ Catalogue complet WotLK (raidKey => données)
      * - label: affichage propre
      * - size: 10 ou 25
-     * - rec: compo recommandée [tanks, heals, dps]
+     * - targets: compo recommandée [tank, heal, dps]
      */
     private const RAIDS = [
         // ===== Icecrown Citadel =====
-        'icc10' => ['label' => 'ICC 10', 'size' => 10, 'rec' => ['tanks' => 2, 'heals' => 2, 'dps' => 6]],
-        'icc25' => ['label' => 'ICC 25', 'size' => 25, 'rec' => ['tanks' => 2, 'heals' => 5, 'dps' => 18]],
+        'icc10'  => ['label' => 'ICC 10',  'size' => 10, 'targets' => ['tank' => 2, 'heal' => 2, 'dps' => 6]],
+        'icc25'  => ['label' => 'ICC 25',  'size' => 25, 'targets' => ['tank' => 2, 'heal' => 5, 'dps' => 18]],
 
-        // Ruby Sanctum
-        'rs10' => ['label' => 'Ruby Sanctum 10', 'size' => 10, 'rec' => ['tanks' => 2, 'heals' => 2, 'dps' => 6]],
-        'rs25' => ['label' => 'Ruby Sanctum 25', 'size' => 25, 'rec' => ['tanks' => 2, 'heals' => 5, 'dps' => 18]],
+        // ===== Ruby Sanctum =====
+        'rs10'   => ['label' => 'Ruby Sanctum 10', 'size' => 10, 'targets' => ['tank' => 2, 'heal' => 2, 'dps' => 6]],
+        'rs25'   => ['label' => 'Ruby Sanctum 25', 'size' => 25, 'targets' => ['tank' => 2, 'heal' => 5, 'dps' => 18]],
 
         // ===== Ulduar =====
-        'ulduar10' => ['label' => 'Ulduar 10', 'size' => 10, 'rec' => ['tanks' => 2, 'heals' => 2, 'dps' => 6]],
-        'ulduar25' => ['label' => 'Ulduar 25', 'size' => 25, 'rec' => ['tanks' => 2, 'heals' => 5, 'dps' => 18]],
+        'ulduar10' => ['label' => 'Ulduar 10', 'size' => 10, 'targets' => ['tank' => 2, 'heal' => 2, 'dps' => 6]],
+        'ulduar25' => ['label' => 'Ulduar 25', 'size' => 25, 'targets' => ['tank' => 2, 'heal' => 5, 'dps' => 18]],
 
         // ===== Naxxramas =====
-        'naxx10' => ['label' => 'Naxxramas 10', 'size' => 10, 'rec' => ['tanks' => 2, 'heals' => 2, 'dps' => 6]],
-        'naxx25' => ['label' => 'Naxxramas 25', 'size' => 25, 'rec' => ['tanks' => 2, 'heals' => 5, 'dps' => 18]],
+        'naxx10' => ['label' => 'Naxxramas 10', 'size' => 10, 'targets' => ['tank' => 2, 'heal' => 2, 'dps' => 6]],
+        'naxx25' => ['label' => 'Naxxramas 25', 'size' => 25, 'targets' => ['tank' => 2, 'heal' => 5, 'dps' => 18]],
 
-        // ===== Trial of the Crusader (ToC) =====
-        'toc10' => ['label' => 'ToC 10', 'size' => 10, 'rec' => ['tanks' => 2, 'heals' => 2, 'dps' => 6]],
-        'toc25' => ['label' => 'ToC 25', 'size' => 25, 'rec' => ['tanks' => 2, 'heals' => 5, 'dps' => 18]],
+        // ===== Trial of the Crusader =====
+        'toc10'  => ['label' => 'ToC 10',  'size' => 10, 'targets' => ['tank' => 2, 'heal' => 2, 'dps' => 6]],
+        'toc25'  => ['label' => 'ToC 25',  'size' => 25, 'targets' => ['tank' => 2, 'heal' => 5, 'dps' => 18]],
+        // Bonus (souvent utilisé sur 3.3.5)
+        'togc10' => ['label' => 'ToGC 10 (HM)', 'size' => 10, 'targets' => ['tank' => 2, 'heal' => 2, 'dps' => 6]],
+        'togc25' => ['label' => 'ToGC 25 (HM)', 'size' => 25, 'targets' => ['tank' => 2, 'heal' => 5, 'dps' => 18]],
 
-        // ===== Vault of Archavon (VoA) =====
-        'voa10' => ['label' => 'VoA 10', 'size' => 10, 'rec' => ['tanks' => 2, 'heals' => 2, 'dps' => 6]],
-        'voa25' => ['label' => 'VoA 25', 'size' => 25, 'rec' => ['tanks' => 2, 'heals' => 5, 'dps' => 18]],
+        // ===== Vault of Archavon =====
+        'voa10'  => ['label' => 'VoA 10', 'size' => 10, 'targets' => ['tank' => 2, 'heal' => 2, 'dps' => 6]],
+        'voa25'  => ['label' => 'VoA 25', 'size' => 25, 'targets' => ['tank' => 2, 'heal' => 5, 'dps' => 18]],
 
         // ===== Onyxia =====
-        'ony10' => ['label' => 'Onyxia 10', 'size' => 10, 'rec' => ['tanks' => 2, 'heals' => 2, 'dps' => 6]],
-        'ony25' => ['label' => 'Onyxia 25', 'size' => 25, 'rec' => ['tanks' => 2, 'heals' => 5, 'dps' => 18]],
+        'ony10'  => ['label' => 'Onyxia 10', 'size' => 10, 'targets' => ['tank' => 2, 'heal' => 2, 'dps' => 6]],
+        'ony25'  => ['label' => 'Onyxia 25', 'size' => 25, 'targets' => ['tank' => 2, 'heal' => 5, 'dps' => 18]],
+
+        // ===== Obsidian Sanctum (Sartharion) =====
+        'os10'   => ['label' => 'Obsidian Sanctum 10', 'size' => 10, 'targets' => ['tank' => 2, 'heal' => 2, 'dps' => 6]],
+        'os25'   => ['label' => 'Obsidian Sanctum 25', 'size' => 25, 'targets' => ['tank' => 2, 'heal' => 5, 'dps' => 18]],
+
+        // ===== Eye of Eternity (Malygos) =====
+        'eoe10'  => ['label' => 'Oeil de l\'éternité 10', 'size' => 10, 'targets' => ['tank' => 2, 'heal' => 2, 'dps' => 6]],
+        'eoe25'  => ['label' => 'Oeil de l\'éternité 25', 'size' => 25, 'targets' => ['tank' => 2, 'heal' => 5, 'dps' => 18]],
     ];
 
     /**
@@ -66,6 +75,10 @@ final class RaidCompositionService
         foreach (self::RAIDS as $key => $data) {
             $choices[$data['label']] = $key;
         }
+
+        // ✅ tri par label (optionnel mais agréable)
+        ksort($choices);
+
         return $choices;
     }
 
@@ -82,21 +95,19 @@ final class RaidCompositionService
         return $labels;
     }
 
-    /**
-     * ✅ Label unique
-     */
     public function getLabel(string $raidKey): string
     {
         return self::RAIDS[$raidKey]['label'] ?? $raidKey;
     }
 
     /**
-     * ✅ Compo recommandée depuis raidKey
-     * Retour: ['tanks'=>2,'heals'=>2,'dps'=>6] (valeurs fallback safe)
+     * ✅ Alias "pro" pour le controller : targets (tank/heal/dps)
+     * Retour: ['tank'=>2,'heal'=>2,'dps'=>6]
      */
-    public function getRecommendedComp(string $raidKey): array
+    public function getTargets(string $raidKey): array
     {
-        return self::RAIDS[$raidKey]['rec'] ?? ['tanks' => 2, 'heals' => 2, 'dps' => 6];
+        return self::RAIDS[$raidKey]['targets']
+            ?? ['tank' => 2, 'heal' => 2, 'dps' => 6];
     }
 
     /**
@@ -108,19 +119,19 @@ final class RaidCompositionService
     }
 
     /**
-     * ✅ Helper "Mythic+" : compte le roster actuel (inscriptions)
+     * ✅ Compte le roster actuel (inscriptions)
      *
-     * @param RaidSignup[] $signups
+     * @param iterable $signups (RaidSignup[])
      * @return array{tank:int,heal:int,dps:int,total:int}
      */
-    public function countRoles(array $signups): array
+    public function countRoles(iterable $signups): array
     {
         $tank = 0;
         $heal = 0;
         $dps  = 0;
 
         foreach ($signups as $s) {
-            $role = $s->getRole(); // RaidRole enum normalement
+            $role = $s->getRole(); // RaidRole enum
             if ($role === RaidRole::TANK) {
                 $tank++;
             } elseif ($role === RaidRole::HEAL) {
@@ -139,35 +150,35 @@ final class RaidCompositionService
     }
 
     /**
-     * ✅ Helper "Mythic+" : calcule ce qu'il manque / ce qui dépasse
+     * ✅ Calcule ce qu'il manque / ce qui dépasse
      *
-     * @param RaidSignup[] $signups
+     * @param iterable $signups (RaidSignup[])
      * @return array{
-     *   recommended: array{tanks:int,heals:int,dps:int},
+     *   targets: array{tank:int,heal:int,dps:int},
      *   current: array{tank:int,heal:int,dps:int,total:int},
      *   missing: array{tank:int,heal:int,dps:int},
      *   extra: array{tank:int,heal:int,dps:int}
      * }
      */
-    public function getCompositionStatus(string $raidKey, array $signups): array
+    public function getCompositionStatus(string $raidKey, iterable $signups): array
     {
-        $rec = $this->getRecommendedComp($raidKey);
+        $targets = $this->getTargets($raidKey);
         $cur = $this->countRoles($signups);
 
         $missing = [
-            'tank' => max(0, $rec['tanks'] - $cur['tank']),
-            'heal' => max(0, $rec['heals'] - $cur['heal']),
-            'dps'  => max(0, $rec['dps'] - $cur['dps']),
+            'tank' => max(0, $targets['tank'] - $cur['tank']),
+            'heal' => max(0, $targets['heal'] - $cur['heal']),
+            'dps'  => max(0, $targets['dps']  - $cur['dps']),
         ];
 
         $extra = [
-            'tank' => max(0, $cur['tank'] - $rec['tanks']),
-            'heal' => max(0, $cur['heal'] - $rec['heals']),
-            'dps'  => max(0, $cur['dps'] - $rec['dps']),
+            'tank' => max(0, $cur['tank'] - $targets['tank']),
+            'heal' => max(0, $cur['heal'] - $targets['heal']),
+            'dps'  => max(0, $cur['dps']  - $targets['dps']),
         ];
 
         return [
-            'recommended' => $rec,
+            'targets' => $targets,
             'current' => $cur,
             'missing' => $missing,
             'extra' => $extra,
