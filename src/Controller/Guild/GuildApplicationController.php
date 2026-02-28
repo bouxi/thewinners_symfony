@@ -107,4 +107,26 @@ final class GuildApplicationController extends AbstractController
 
         return $this->redirectToRoute('guild_application_status');
     }
+
+    #[Route('/guild/application/status', name: 'guild_application_status', methods: ['GET'])]
+    public function status(GuildApplicationRepository $repo): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_USER');
+
+        /** @var User $user */
+        $user = $this->getUser();
+        \assert($user instanceof User);
+
+        $application = $repo->findOneByUserId((int) $user->getId());
+
+        if (!$application) {
+            $this->addFlash('warning', "Tu n'as pas encore envoyé de candidature.");
+            return $this->redirectToRoute('guild_apply');
+        }
+
+        return $this->render('guild/application_status.html.twig', [
+            'application' => $application,
+            'messages' => [],
+        ]);
+    }
 }
