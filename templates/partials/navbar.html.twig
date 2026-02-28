@@ -7,10 +7,10 @@
             <a class="navbar-brand fw-bold text-danger d-flex align-items-center gap-2"
                href="{{ path('app_home') }}">
                 <img
-                    src="{{ asset('/images/icons/icons8-world-of-warcraft-48.png') }}"
+                    src="{{ asset('/images/icons/thewinners_logo.png') }}"
                     alt="TheWinners"
-                    width="40"
-                    height="40"
+                    width="68"
+                    height="68"
                 >
             </a>
 
@@ -82,7 +82,7 @@
 
                             {% if app.user.avatar %}
                                 <img
-                                    src="{{ asset(app.user.avatar) }}"
+                                    src="{{ asset(app.user.avatar ?: 'images/default-avatar.png') }}"
                                     alt="Avatar"
                                     width="28"
                                     height="28"

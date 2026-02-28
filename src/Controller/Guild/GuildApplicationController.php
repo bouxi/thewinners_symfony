@@ -6,10 +6,12 @@ namespace App\Controller\Guild;
 
 use App\Entity\Application;
 use App\Entity\ApplicationMessage;
+use App\Entity\Personnage;
 use App\Entity\User;
 use App\Enum\ApplicationStatus;
 use App\Repository\ApplicationMessageRepository;
 use App\Repository\GuildApplicationRepository;
+use App\Service\CombatRoleResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -22,189 +24,87 @@ final class GuildApplicationController extends AbstractController
     public function apply(
         Request $request,
         EntityManagerInterface $em,
-        GuildApplicationRepository $repo
+        GuildApplicationRepository $repo,
+        CombatRoleResolver $roleResolver
     ): Response {
-        // ✅ Seuls les utilisateurs connectés peuvent postuler
+
         $this->denyAccessUnlessGranted('ROLE_USER');
 
-        /** @var User $user */
         $user = $this->getUser();
-        \assert($user instanceof User);
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
 
-        // ✅ Empêche de postuler 2 fois
-        $existing = $repo->findOneByUserId((int) $user->getId());
-        if ($existing) {
+        if ($repo->findOneByUserId((int) $user->getId())) {
             return $this->redirectToRoute('guild_application_status');
         }
 
-        // ✅ Données WoW LK (classe => spécialisations)
-        // (Tu pourras ensuite déplacer ça dans un JSON / service, mais déjà là c'est clean)
-        $wow = [
-            'Chevalier de la mort' => ['Sang', 'Givre', 'Impie'],
-            'Druide' => ['Équilibre', 'Farouche', 'Restauration'],
-            'Chasseur' => ['Maîtrise des bêtes', 'Précision', 'Survie'],
-            'Mage' => ['Arcanes', 'Feu', 'Givre'],
-            'Paladin' => ['Sacré', 'Protection', 'Vindicte'],
-            'Prêtre' => ['Discipline', 'Sacré', 'Ombre'],
-            'Voleur' => ['Assassinat', 'Combat', 'Finesse'],
-            'Chaman' => ['Élémentaire', 'Amélioration', 'Restauration'],
-            'Démoniste' => ['Affliction', 'Démonologie', 'Destruction'],
-            'Guerrier' => ['Armes', 'Fureur', 'Protection'],
-        ];
+        $jsonPath = $this->getParameter('kernel.project_dir') . '/public/data/wotlk-classes.json';
 
-        // ✅ Valeurs par défaut pour pré-remplir le form (utile si erreur)
-        $old = [
-            'class' => '',
-            'specialization' => '',
-            'motivation' => '',
-        ];
+        $renderApply = function (array $old = []) use ($jsonPath): Response {
+            $wow = [];
+            if (is_file($jsonPath)) {
+                $decoded = json_decode((string) file_get_contents($jsonPath), true);
+                if (is_array($decoded)) {
+                    $wow = $decoded;
+                }
+            }
 
-        // ✅ GET : affiche le formulaire
+            return $this->render('guild/apply.html.twig', [
+                'wow' => $wow,
+                'old' => $old,
+            ]);
+        };
+
         if ($request->isMethod('GET')) {
-            return $this->render('guild/apply.html.twig', [
-                'wow' => $wow,
-                'old' => $old,
-            ]);
+            return $renderApply();
         }
 
-        // ✅ POST : vérification CSRF
-        $token = (string) $request->request->get('_token');
-        if (!$this->isCsrfTokenValid('guild_apply', $token)) {
+        if (!$this->isCsrfTokenValid('guild_apply', (string)$request->request->get('_token'))) {
             $this->addFlash('danger', 'Token CSRF invalide.');
-
-            return $this->render('guild/apply.html.twig', [
-                'wow' => $wow,
-                'old' => $old,
-            ]);
+            return $this->redirectToRoute('guild_apply');
         }
 
-        // ✅ Récupération des champs
-        $class = trim((string) $request->request->get('class', ''));
-        $specialization = trim((string) $request->request->get('specialization', ''));
-        $motivation = trim((string) $request->request->get('motivation', ''));
+        $playerName     = trim((string)$request->request->get('player_name'));
+        $class          = trim((string)$request->request->get('class'));
+        $specialization = trim((string)$request->request->get('specialization'));
+        $motivation     = trim((string)$request->request->get('motivation'));
 
-        // ✅ On garde les valeurs pour réafficher si erreur
-        $old = [
-            'class' => $class,
-            'specialization' => $specialization,
-            'motivation' => $motivation,
-        ];
+        $old = compact('playerName','class','specialization','motivation');
 
-        // ✅ Validation minimale
-        if ($class === '' || $specialization === '' || $motivation === '') {
-            $this->addFlash('danger', 'Merci de remplir : Classe, Spécialisation et Motivation.');
-            return $this->render('guild/apply.html.twig', [
-                'wow' => $wow,
-                'old' => $old,
-            ]);
+        if ($playerName === '' || $class === '' || $specialization === '' || $motivation === '') {
+            $this->addFlash('danger', 'Tous les champs sont obligatoires.');
+            return $renderApply($old);
         }
 
-        // ✅ Validation “pro” : classe existante + spé correspondante
-        if (!array_key_exists($class, $wow)) {
-            $this->addFlash('danger', 'Classe invalide.');
-            return $this->render('guild/apply.html.twig', [
-                'wow' => $wow,
-                'old' => $old,
-            ]);
-        }
+        // 🔥 Rôle calculé automatiquement
+        $roleEnum = $roleResolver->resolveRoleFromSpec($specialization);
 
-        if (!in_array($specialization, $wow[$class], true)) {
-            $this->addFlash('danger', 'Spécialisation invalide pour cette classe.');
-            return $this->render('guild/apply.html.twig', [
-                'wow' => $wow,
-                'old' => $old,
-            ]);
-        }
+        $personnage = new Personnage();
+        $personnage->setUser($user);
+        $personnage->setName($playerName);
+        $personnage->setClass($class);
+        $personnage->setSpec($specialization);
+        $personnage->setCombatRole($roleEnum);
+        $personnage->setIsPublic(true);
+        $personnage->setIsMain(false);
 
-        // ✅ Re-check anti double POST
-        $existing = $repo->findOneByUserId((int) $user->getId());
-        if ($existing) {
-            return $this->redirectToRoute('guild_application_status');
-        }
+        $em->persist($personnage);
 
-        // ✅ Création candidature
         $application = new Application();
         $application->setUser($user);
+        $application->setPersonnage($personnage);
+        $application->setPlayerName($playerName);
         $application->setClass($class);
         $application->setSpecialization($specialization);
         $application->setMotivation($motivation);
         $application->setStatus(ApplicationStatus::PENDING);
 
-        if (method_exists($application, 'setSubmittedAt')) {
-            $application->setSubmittedAt(new \DateTimeImmutable());
-        }
-
         $em->persist($application);
         $em->flush();
 
         $this->addFlash('success', 'Candidature envoyée ✅');
+
         return $this->redirectToRoute('guild_application_status');
-    }
-
-    /**
-     * ✅ Page "Ma candidature" :
-     * - GET  : affiche candidature + messages
-     * - POST : envoie un nouveau message au staff (admin)
-     */
-    #[Route('/guild/application', name: 'guild_application_status', methods: ['GET', 'POST'])]
-    public function status(
-        Request $request,
-        EntityManagerInterface $em,
-        GuildApplicationRepository $repo,
-        ApplicationMessageRepository $messageRepo
-    ): Response {
-        $this->denyAccessUnlessGranted('ROLE_USER');
-
-        /** @var User $user */
-        $user = $this->getUser();
-        \assert($user instanceof User);
-
-        // ✅ On récupère la candidature du user connecté
-        $application = $repo->findOneByUserId((int) $user->getId());
-        if (!$application) {
-            return $this->redirectToRoute('guild_apply');
-        }
-
-        // ✅ POST : envoi d'un message lié à la candidature
-        if ($request->isMethod('POST')) {
-            if (!$this->isCsrfTokenValid('application_reply', (string) $request->request->get('_token'))) {
-                $this->addFlash('danger', 'Token CSRF invalide.');
-                return $this->redirectToRoute('guild_application_status');
-            }
-
-            $content = trim((string) $request->request->get('content', ''));
-
-            if ($content === '') {
-                $this->addFlash('warning', 'Ton message est vide.');
-                return $this->redirectToRoute('guild_application_status');
-            }
-
-            $message = new ApplicationMessage();
-            $message->setApplication($application);
-            $message->setSender($user);
-            $message->setContent($content);
-            $message->setCreatedAt(new \DateTimeImmutable());
-
-            $em->persist($message);
-            $em->flush();
-
-            $this->addFlash('success', 'Message envoyé ✅');
-            return $this->redirectToRoute('guild_application_status');
-        }
-
-        // ✅ GET : charge les messages
-        $messages = $messageRepo->findBy(
-            ['application' => $application],
-            ['createdAt' => 'ASC']
-        );
-
-        if (method_exists($messageRepo, 'markAllAsReadForApplicant')) {
-            $messageRepo->markAllAsReadForApplicant((int) $application->getId());
-        }
-
-        return $this->render('guild/application_status.html.twig', [
-            'application' => $application,
-            'messages' => $messages,
-        ]);
     }
 }

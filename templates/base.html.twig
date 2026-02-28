@@ -17,14 +17,15 @@
         crossorigin="anonymous"
     >
 
-    {# Ton CSS maison (via AssetMapper ou public/build) #}
-    {# Si tu utilises AssetMapper : asset('app.css') #}
-
+    {# Ton CSS maison #}
     <link rel="stylesheet" href="{{ asset('styles/app.css') }}">
 
-
     {% block stylesheets %}{% endblock %}
+
+    {# ✅ IMPORTANT si tu utilises AssetMapper/importmap (charge assets/app.js) #}
+    {{ importmap('app') }}
 </head>
+
 <body class="d-flex flex-column min-vh-100 bg-dark text-light">
 
 {% include 'partials/navbar.html.twig' %}
@@ -40,11 +41,16 @@
     {% include 'partials/footer.html.twig' %}
 {% endif %}
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-        crossorigin="anonymous"></script>
+{# ✅ Les modals ici : en bas du body, hors des wrappers => layering stable #}
+{% block modals %}{% endblock %}
+
+{# Bootstrap JS via CDN (ok puisque window.bootstrap fonctionne) #}
+<script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+    crossorigin="anonymous"></script>
 
 {% block javascripts %}{% endblock %}
-</body>
 
+</body>
 </html>

@@ -3,12 +3,13 @@
 namespace App\Repository;
 
 use App\Entity\User;
+use App\Enum\CombatRole;
+use App\Enum\GuildRank;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
-use App\Enum\GuildRank;
 
 /**
  * @extends ServiceEntityRepository<User>
@@ -19,7 +20,6 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     {
         parent::__construct($registry, User::class);
     }
-
 
     /**
      * Used to upgrade (rehash) the user's password automatically over time.
@@ -35,47 +35,44 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         $this->getEntityManager()->flush();
     }
 
-    //    /**
-    //     * @return User[] Returns an array of User objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('u')
-    //            ->andWhere('u.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('u.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
-
-    //    public function findOneBySomeField($value): ?User
-    //    {
-    //        return $this->createQueryBuilder('u')
-    //            ->andWhere('u.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
-
     /**
-     * Retourne la liste publique des membres de guilde :
-     * - Tous les users dont le rank != VISITOR
-     * - Et on charge aussi leur candidature (Application) pour classe/spé
+     * Liste publique des membres de guilde :
+     * - Rank != VISITOR
+     * - Visible publiquement = true
+     * - Filtre optionnel par rôle (Tank/Heal/DPS)
+     *
+     * @return User[]
      */
-    public function findPublicGuildMembers(): array
+    public function findPublicGuildMembers(?CombatRole $role = null): array
     {
-        return $this->createQueryBuilder('u')
-            ->leftJoin('u.guildApplication', 'a')   // relation OneToOne User -> Application
-            ->addSelect('a')                       // évite le lazy loading en boucle
-            ->andWhere('u.guildRank != :visitor')  // on exclut les simples visiteurs
-            ->setParameter('visitor', GuildRank::VISITOR)
-            ->orderBy('u.guildRank', 'ASC')        // ordre basique (optionnel)
+        $qb = $this->createQueryBuilder('u')
+            ->where('u.guildRank <> :visitor')
+            ->andWhere('u.isPublicMember = true')
+            ->setParameter('visitor', GuildRank::VISITOR);
+
+        if ($role !== null) {
+            $qb->andWhere('u.combatRole = :role')
+               ->setParameter('role', $role); // enum -> OK
+        }
+
+        return $qb
+            ->orderBy('u.guildRank', 'ASC')
             ->addOrderBy('u.pseudo', 'ASC')
             ->getQuery()
             ->getResult();
+    }
+
+    public function countUsersWithRole(string $role): int
+    {
+        // roles est un JSON: on cherche la valeur dedans.
+        // Technique simple & portable : LIKE sur la chaîne JSON.
+        // Exemple stocké: ["ROLE_USER","ROLE_GM"]
+        return (int) $this->createQueryBuilder('u')
+            ->select('COUNT(u.id)')
+            ->andWhere('u.roles LIKE :role')
+            ->setParameter('role', '%"'.$role.'"%')
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
 }

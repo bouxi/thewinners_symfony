@@ -27,11 +27,11 @@ final class ProfileController extends AbstractController
     ): Response {
         $this->denyAccessUnlessGranted('ROLE_USER');
 
+        /** @var User $me */
         $me = $this->getUser();
-        \assert($me instanceof User);
 
         /* =========================
-         * FORMULAIRE PROFIL
+         * FORM PROFIL
          * ========================= */
         $profileForm = $this->createForm(ProfileType::class, $me, [
             'csrf_token_id' => 'profile_update',
@@ -40,29 +40,46 @@ final class ProfileController extends AbstractController
 
         if ($profileForm->isSubmitted() && $profileForm->isValid()) {
             $oldAvatar = $me->getAvatar();
-
-            /** @var \Symfony\Component\HttpFoundation\File\UploadedFile|null $avatarFile */
             $avatarFile = $profileForm->get('avatarFile')->getData();
 
             if ($avatarFile) {
-                try {
-                    // Upload nouveau + suppression ancien
-                    $newPath = $avatarUploader->replace($avatarFile, $oldAvatar);
-                    $me->setAvatar($newPath);
-                } catch (\RuntimeException $e) {
-                    $this->addFlash('danger', $e->getMessage());
-                    return $this->redirectToRoute('app_profile');
-                }
+                $newPath = $avatarUploader->replace($avatarFile, $oldAvatar);
+                $me->setAvatar($newPath);
             }
 
             $em->flush();
-
             $this->addFlash('success', 'Profil mis à jour.');
             return $this->redirectToRoute('app_profile');
         }
 
         /* =========================
-         * FORMULAIRE MOT DE PASSE
+         * FORM PERSONNAGE
+         * ========================= */
+        if (
+            $request->isMethod('POST') &&
+            $request->request->has('_token_character') &&
+            $this->isCsrfTokenValid(
+                'character_update',
+                (string) $request->request->get('_token_character')
+            )
+        ) {
+            $me->setCharacterName(
+                trim((string) $request->request->get('characterName'))
+            );
+            $me->setCharacterClass(
+                trim((string) $request->request->get('characterClass'))
+            );
+            $me->setCharacterSpec(
+                trim((string) $request->request->get('characterSpec'))
+            );
+
+            $em->flush();
+            $this->addFlash('success', 'Personnage mis à jour.');
+            return $this->redirectToRoute('app_profile');
+        }
+
+        /* =========================
+         * FORM MOT DE PASSE
          * ========================= */
         $passwordForm = $this->createForm(ChangePasswordType::class, null, [
             'csrf_token_id' => 'password_change',
@@ -70,20 +87,22 @@ final class ProfileController extends AbstractController
         $passwordForm->handleRequest($request);
 
         if ($passwordForm->isSubmitted() && $passwordForm->isValid()) {
-            $currentPassword = (string) $passwordForm->get('currentPassword')->getData();
-            $newPassword = (string) $passwordForm->get('newPassword')->get('first')->getData();
-
-            if (!$passwordHasher->isPasswordValid($me, $currentPassword)) {
+            if (!$passwordHasher->isPasswordValid(
+                $me,
+                (string) $passwordForm->get('currentPassword')->getData()
+            )) {
                 $this->addFlash('danger', 'Mot de passe actuel incorrect.');
                 return $this->redirectToRoute('app_profile');
             }
 
             $me->setPassword(
-                $passwordHasher->hashPassword($me, $newPassword)
+                $passwordHasher->hashPassword(
+                    $me,
+                    (string) $passwordForm->get('newPassword')->get('first')->getData()
+                )
             );
 
             $em->flush();
-
             $this->addFlash('success', 'Mot de passe modifié.');
             return $this->redirectToRoute('app_profile');
         }

@@ -22,39 +22,86 @@
             <tr>
                 <th>#</th>
                 <th>Email</th>
-                <th>Rôles</th>
-                <th class="text-end">Actions</th>
+                <th>Rôles (stockés)</th>
+                <th>Rôles (effectifs)</th>
                 <th>Grade</th>
+                <th class="text-end">Actions</th>
             </tr>
             </thead>
+
             <tbody>
             {% for user in users %}
+                {% set storedRoles = user.storedRoles %}
+                {% set effectiveRoles = user.roles %}
+
+                {% set isAdminStored = 'ROLE_ADMIN' in storedRoles %}
+                {% set isGmStored = 'ROLE_GM' in storedRoles %}
+
                 <tr>
                     <td>{{ user.id }}</td>
-                    <td>{{ user.email }}</td>
-                    <td><code class="text-warning">{{ user.roles|json_encode }}</code></td>
-                    <td class="text-end">
-                        <form method="post" action="{{ path('admin_users_toggle_admin', {id: user.id}) }}" class="d-inline">
-                            <input type="hidden" name="_token" value="{{ csrf_token('toggle_admin_' ~ user.id) }}">
-                            {% set isAdmin = 'ROLE_ADMIN' in user.roles %}
-                            <button class="btn btn-sm {{ isAdmin ? 'btn-outline-warning' : 'btn-danger' }}">
-                                {{ isAdmin ? 'Retirer admin' : 'Promouvoir admin' }}
-                            </button>
-                        </form>
-                        <a class="btn btn-sm btn-outline-light"
-                           href="{{ path('admin_users_guild_rank', {id: user.id}) }}">
-                            Modifier grade
-                        </a>
 
+                    <td>
+                        {{ user.email }}
+                        {% if isGmStored %}
+                            <span class="badge bg-warning text-dark ms-2">GM</span>
+                        {% endif %}
+                        {% if isAdminStored and not isGmStored %}
+                            <span class="badge bg-danger ms-2">Admin</span>
+                        {% endif %}
                     </td>
+
+                    <td>
+                        <code class="text-warning">{{ storedRoles|json_encode }}</code>
+                    </td>
+
+                    <td>
+                        <code class="text-info">{{ effectiveRoles|json_encode }}</code>
+                    </td>
+
                     <td>
                         {{ user.guildRank.label() }}
                     </td>
 
+                    <td class="text-end">
+                        {# ✅ Bouton toggle admin : visible/actif uniquement si Voter autorise #}
+                        {% if is_granted('USER_TOGGLE_ADMIN', user) %}
+                            <form method="post" action="{{ path('admin_users_toggle_admin', {id: user.id}) }}" class="d-inline">
+                                <input type="hidden" name="_token" value="{{ csrf_token('toggle_admin_' ~ user.id) }}">
+                                <button class="btn btn-sm {{ isAdminStored ? 'btn-outline-warning' : 'btn-danger' }}"
+                                        onclick="return confirm('Confirmer la modification du rôle Admin ?');">
+                                    {{ isAdminStored ? 'Retirer admin' : 'Promouvoir admin' }}
+                                </button>
+                            </form>
+                        {% else %}
+                            <button class="btn btn-sm btn-outline-secondary" disabled title="Réservé au Super Admin">
+                                Admin
+                            </button>
+                        {% endif %}
+
+                        {# ✅ Bouton toggle GM : même logique + bonus dernier GM géré côté Voter #}
+                        {% if is_granted('USER_TOGGLE_GM', user) %}
+                            <form method="post" action="{{ path('admin_users_toggle_gm', {id: user.id}) }}" class="d-inline">
+                                <input type="hidden" name="_token" value="{{ csrf_token('toggle_gm_' ~ user.id) }}">
+                                <button class="btn btn-sm {{ isGmStored ? 'btn-outline-warning' : 'btn-warning' }}"
+                                        onclick="return confirm('Confirmer la modification du rôle GM ?');">
+                                    {{ isGmStored ? 'Retirer GM' : 'Promouvoir GM' }}
+                                </button>
+                            </form>
+                        {% else %}
+                            <button class="btn btn-sm btn-outline-secondary" disabled title="Réservé au Super Admin / ou dernier GM protégé">
+                                GM
+                            </button>
+                        {% endif %}
+
+                        <a class="btn btn-sm btn-outline-light"
+                           href="{{ path('admin_users_guild_rank', {id: user.id}) }}">
+                            Modifier grade
+                        </a>
+                    </td>
                 </tr>
             {% else %}
                 <tr>
-                    <td colspan="4" class="text-center text-muted py-4">
+                    <td colspan="6" class="text-center text-muted py-4">
                         Aucun utilisateur trouvé.
                     </td>
                 </tr>

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Enum\GuildRank;
+use App\Enum\CombatRole;
+use App\Entity\Application;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -83,6 +85,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 20, enumType: GuildRank::class)]
     private GuildRank $guildRank = GuildRank::VISITOR;
 
+    
+
     /**
      * Date d'inscription sur le site.
      */
@@ -101,6 +105,27 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(options: ['default' => false])]
     private bool $isVerified = false;
 
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $characterName = null;
+
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $characterClass = null;
+
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $characterSpec = null;
+
+    
+    #[ORM\Column(enumType: CombatRole::class, nullable: true)]
+    private ?CombatRole $combatRole = null;
+
+    
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Personnage::class, orphanRemoval: true)]
+    private Collection $personnages;
+
+    #[ORM\Column(type: 'boolean')]
+    private bool $isPublicMember = true;
+
+
     public function __construct()
     {
         $this->dateInscription = new \DateTimeImmutable();
@@ -108,6 +133,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         $this->conversationsAsUserOne = new ArrayCollection();
         $this->conversationsAsUserTwo = new ArrayCollection();
+        $this->personnages = new ArrayCollection();
         $this->sentMessages = new ArrayCollection();
     }
 
@@ -131,6 +157,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
+
+    #[ORM\Column(type: 'boolean')]
+    private bool $isGuildMember = false;
 
     /**
      * Symfony utilise cette méthode comme identifiant unique.
@@ -323,6 +352,94 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getStoredRoles(): array
     {
         return $this->roles;
+    }
+
+    public function getCharacterName(): ?string
+{
+    return $this->characterName;
+}
+
+    public function setCharacterName(?string $characterName): self
+    {
+        $this->characterName = $characterName;
+        return $this;
+    }
+
+    public function getCharacterClass(): ?string
+    {
+        return $this->characterClass;
+    }
+
+    public function setCharacterClass(?string $characterClass): self
+    {
+        $this->characterClass = $characterClass;
+        return $this;
+    }
+
+    public function getCharacterSpec(): ?string
+    {
+        return $this->characterSpec;
+    }
+
+    public function setCharacterSpec(?string $characterSpec): self
+    {
+        $this->characterSpec = $characterSpec;
+        return $this;
+    }
+
+    /** @return Collection<int, Personnage> */
+    public function getPersonnages(): Collection
+    {
+        return $this->personnages;
+    }
+
+    public function addPersonnage(Personnage $p): self
+    {
+        if (!$this->personnages->contains($p)) {
+            $this->personnages->add($p);
+            $p->setUser($this);
+        }
+        return $this;
+    }
+
+    public function removePersonnage(Personnage $p): self
+    {
+        if ($this->personnages->removeElement($p)) {
+            // orphanRemoval=true => supprime en DB
+        }
+        return $this;
+    }
+    
+    public function getCombatRole(): ?CombatRole
+    {
+        return $this->combatRole;
+    }
+
+    public function setCombatRole(?CombatRole $combatRole): self
+    {
+        $this->combatRole = $combatRole;
+        return $this;
+    }
+    public function isGuildMember(): bool
+    {
+        return $this->isGuildMember;
+    }
+
+    public function setIsGuildMember(bool $isGuildMember): self
+    {
+        $this->isGuildMember = $isGuildMember;
+        return $this;
+    }
+
+    public function isPublicMember(): bool
+    {
+        return $this->isPublicMember;
+    }
+
+    public function setIsPublicMember(bool $isPublicMember): self
+    {
+        $this->isPublicMember = $isPublicMember;
+        return $this;
     }
 
 }

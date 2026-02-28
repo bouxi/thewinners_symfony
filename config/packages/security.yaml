@@ -15,7 +15,9 @@ security:
         ROLE_ADMIN:     ['ROLE_OFFICER', 'ROLE_MEMBER', 'ROLE_USER']
         ROLE_OFFICER:   ['ROLE_MEMBER', 'ROLE_USER']
         ROLE_MEMBER:    ['ROLE_USER']
-        ROLE_GM:        ['ROLE_ADMIN']   # Maître de guilde = full access
+        # ✅ Super admin technique
+        ROLE_SUPER_ADMIN: ['ROLE_ADMIN', 'ROLE_ALLOWED_TO_SWITCH']
+        ROLE_GM:        ['ROLE_SUPER_ADMIN']   # Maître de guilde = full access
         ROLE_APPLICANT: ['ROLE_USER']
 
     firewalls:
@@ -41,6 +43,7 @@ security:
 
     # Ordre important : la première règle qui matche gagne
     access_control:
+        - { path: ^/admin/super, roles: ROLE_SUPER_ADMIN }
         # Zone admin (GM / Officiers)
         - { path: ^/admin,   roles: ROLE_ADMIN }
         # Zone raids

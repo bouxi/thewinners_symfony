@@ -53,4 +53,21 @@ final class GuildApplicationRepository extends ServiceEntityRepository
             ->getQuery()
             ->getOneOrNullResult();
     }
+
+    public function findPublicGuildMembers(?string $role = null): array
+    {
+        $qb = $this->createQueryBuilder('u')
+            ->where('u.isGuildMember = true')
+            ->andWhere('u.isPublicMember = true');
+
+        if ($role) {
+            $qb->andWhere('u.combatRole = :role')
+            ->setParameter('role', $role);
+        }
+
+        return $qb->orderBy('u.characterClass', 'ASC')
+                ->getQuery()
+                ->getResult();
+    }
+
 }

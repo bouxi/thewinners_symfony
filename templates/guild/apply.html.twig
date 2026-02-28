@@ -3,29 +3,46 @@
 {% block title %}Postuler{% endblock %}
 
 {% block body %}
-    <div class="container py-4">
+<div class="container py-4">
 
-        {% for label, messagesFlash in app.flashes %}
-            {% for message in messagesFlash %}
-                <div class="alert alert-{{ label }} mb-3">{{ message }}</div>
-            {% endfor %}
+    {% for label, messagesFlash in app.flashes %}
+        {% for message in messagesFlash %}
+            <div class="alert alert-{{ label }} mb-3">
+                {{ message }}
+            </div>
         {% endfor %}
+    {% endfor %}
 
-            <h1 class="mb-2 display-5">Postuler chez les TheWinners</h1>
-            <p class="mb-4" style="font-size: 20px;">
-                Petite guilde familiale — dis-nous ce que tu joues et pourquoi tu veux nous rejoindre 🙂
-            </p>
+    {% if wow is empty %}
+        <div class="alert alert-danger mb-4">
+            ⚠️ Le référentiel des classes WoW est indisponible.
+        </div>
+    {% endif %}
 
-        <div class="card bg-dark border-danger shadow-lg guild-apply-card">
+    <h1 class="mb-2 display-5">Postuler chez les TheWinners</h1>
+
+    {% if wow is not empty %}
+        <div class="card bg-dark border-danger shadow-lg p-3">
             <form method="post" action="{{ path('guild_apply') }}">
                 <input type="hidden" name="_token" value="{{ csrf_token('guild_apply') }}">
+
+                <div class="mb-3">
+                    <label class="form-label text-light">Nom du personnage</label>
+                    <input type="text"
+                           name="player_name"
+                           class="form-control"
+                           maxlength="50"
+                           required
+                           value="{{ old.player_name|default('') }}">
+                </div>
 
                 <div class="mb-3">
                     <label class="form-label text-light">Classe</label>
                     <select id="classSelect" name="class" class="form-select" required>
                         <option value="">— Choisir une classe —</option>
+                        {% set oldClass = old.class|default('') %}
                         {% for className, specs in wow %}
-                            <option value="{{ className }}" {% if old.class == className %}selected{% endif %}>
+                            <option value="{{ className }}" {% if oldClass == className %}selected{% endif %}>
                                 {{ className }}
                             </option>
                         {% endfor %}
@@ -37,7 +54,6 @@
                     <select id="specSelect" name="specialization" class="form-select" required disabled>
                         <option value="">— Choisir d’abord une classe —</option>
                     </select>
-                    <div class="form-text">La liste se met à jour selon la classe choisie.</div>
                 </div>
 
                 <div class="mb-3">
@@ -45,77 +61,55 @@
                     <textarea name="motivation"
                               class="form-control"
                               rows="5"
-                              required
-                              placeholder="Dis-nous ce que tu recherches : ambiance chill, raids, entraide, etc.">{{ old.motivation }}</textarea>
+                              required>{{ old.motivation|default('') }}</textarea>
                 </div>
 
                 <button class="btn btn-danger">Envoyer ma candidature</button>
             </form>
         </div>
-    </div>
+    {% endif %}
+</div>
 
-    {# ✅ On met les données wow en JSON (propre, pas de HTML caché) #}
-    <script id="wow-data" type="application/json">{{ wow|json_encode(constant('JSON_UNESCAPED_UNICODE'))|raw }}</script>
+<script id="wow-data" type="application/json">
+{{ wow|json_encode(constant('JSON_UNESCAPED_UNICODE'))|raw }}
+</script>
 
-    <script>
-        (function () {
-            const wow = JSON.parse(document.getElementById('wow-data').textContent);
+<script>
+(function () {
+    const wow = JSON.parse(document.getElementById('wow-data').textContent || '{}');
+    const classSelect = document.getElementById('classSelect');
+    const specSelect  = document.getElementById('specSelect');
 
-            const classSelect = document.getElementById('classSelect');
-            const specSelect = document.getElementById('specSelect');
+    function resetSpecs() {
+        specSelect.innerHTML = '<option value="">— Choisir d’abord une classe —</option>';
+        specSelect.disabled = true;
+    }
 
-            // Valeur “old” du serveur (si erreur)
-            const oldClass = {{ old.class|json_encode|raw }};
-            const oldSpec  = {{ old.specialization|json_encode|raw }};
+    function fillSpecs(className) {
+        const specs = wow[className] || [];
+        specSelect.innerHTML = '<option value="">— Choisir une spécialisation —</option>';
 
-            function resetSpecs(placeholderText) {
-                specSelect.innerHTML = '';
-                const opt = document.createElement('option');
-                opt.value = '';
-                opt.textContent = placeholderText;
-                specSelect.appendChild(opt);
-                specSelect.disabled = true;
-            }
+        specs.forEach(spec => {
+            const opt = document.createElement('option');
+            opt.value = spec;
+            opt.textContent = spec;
+            specSelect.appendChild(opt);
+        });
 
-            function fillSpecsForClass(className, selectedSpec = '') {
-                const specs = wow[className] || [];
+        specSelect.disabled = false;
+    }
 
-                specSelect.innerHTML = '';
-                const first = document.createElement('option');
-                first.value = '';
-                first.textContent = '— Choisir une spécialisation —';
-                specSelect.appendChild(first);
+    classSelect.addEventListener('change', () => {
+        const selected = classSelect.value;
+        if (!selected || !wow[selected]) {
+            resetSpecs();
+            return;
+        }
+        fillSpecs(selected);
+    });
 
-                specs.forEach((spec) => {
-                    const opt = document.createElement('option');
-                    opt.value = spec;
-                    opt.textContent = spec;
-                    if (selectedSpec && selectedSpec === spec) opt.selected = true;
-                    specSelect.appendChild(opt);
-                });
+    resetSpecs();
+})();
+</script>
 
-                specSelect.disabled = false;
-            }
-
-            // Quand on change de classe => on recharge les spés
-            classSelect.addEventListener('change', () => {
-                const c = classSelect.value;
-
-                if (!c || !wow[c]) {
-                    resetSpecs('— Choisir d’abord une classe —');
-                    return;
-                }
-
-                fillSpecsForClass(c, '');
-            });
-
-            // ✅ Au chargement : si on a une oldClass, on remplit direct
-            if (oldClass && wow[oldClass]) {
-                classSelect.value = oldClass;
-                fillSpecsForClass(oldClass, oldSpec || '');
-            } else {
-                resetSpecs('— Choisir d’abord une classe —');
-            }
-        })();
-    </script>
 {% endblock %}
