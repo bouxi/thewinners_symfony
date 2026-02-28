@@ -77,6 +77,14 @@
                             </li>
                         {% endif %}
 
+                        {% if is_granted('ROLE_GM') %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ path('gm_personnage_new') }}">
+                                    ➕ Ajouter mon perso
+                                </a>
+                            </li>
+                        {% endif %}
+
                         {# Avatar + pseudo (simple affichage) #}
                         <li class="nav-item d-flex align-items-center gap-2">
 

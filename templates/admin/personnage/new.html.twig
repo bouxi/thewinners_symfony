@@ -1,0 +1,84 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Ajouter mon personnage{% endblock %}
+
+{% block body %}
+<div class="container py-4">
+
+    <h1 class="mb-3">Ajouter mon personnage (Admin)</h1>
+
+    {# ✅ messages flash #}
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }} mb-3">{{ message }}</div>
+        {% endfor %}
+    {% endfor %}
+
+    <div class="card bg-dark text-white border-0">
+        <div class="card-body">
+
+            {{ form_start(form) }}
+
+                {{ form_row(form.name) }}
+                {{ form_row(form.class) }}
+                {{ form_row(form.spec) }}
+
+                <button class="btn btn-success mt-2">
+                    Enregistrer
+                </button>
+
+                <a class="btn btn-secondary mt-2" href="{{ path('guild_members') }}">
+                    Retour
+                </a>
+
+            {{ form_end(form) }}
+
+        </div>
+    </div>
+
+</div>
+
+<script>
+    (function () {
+        const WOW_CLASSES = {{ constant('App\\\\Service\\\\WowData::CLASSES')|json_encode|raw }};
+
+        const classSelect = document.getElementById('{{ form.class.vars.id }}');
+        const specSelect  = document.getElementById('{{ form.spec.vars.id }}');
+
+        if (!classSelect || !specSelect) return;
+
+        function resetSpecs(specs) {
+            specSelect.innerHTML = '';
+
+            // placeholder
+            const placeholder = document.createElement('option');
+            placeholder.value = '';
+            placeholder.textContent = '— Choisir —';
+            specSelect.appendChild(placeholder);
+
+            // options
+            specs.forEach(spec => {
+                const opt = document.createElement('option');
+                opt.value = spec;
+                opt.textContent = spec;
+                specSelect.appendChild(opt);
+            });
+        }
+
+        function onClassChange() {
+            const selectedClass = classSelect.value;
+
+            if (!selectedClass || !WOW_CLASSES[selectedClass]) {
+                resetSpecs([]);
+                return;
+            }
+
+            resetSpecs(WOW_CLASSES[selectedClass]);
+        }
+
+        // init + listener
+        onClassChange();
+        classSelect.addEventListener('change', onClassChange);
+    })();
+</script>
+{% endblock %}
