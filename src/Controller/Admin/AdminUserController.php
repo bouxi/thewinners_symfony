@@ -7,6 +7,7 @@ namespace App\Controller\Admin;
 use App\Entity\User;
 use App\Form\Admin\UserGuildRankType;
 use App\Repository\UserRepository;
+use App\Security\Voter\UserRoleVoter;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -29,7 +30,6 @@ final class AdminUserController extends AbstractController
         $limit = 15;
         $offset = ($page - 1) * $limit;
 
-        // QueryBuilder : on filtre sur email si q est rempli
         $qb = $userRepository->createQueryBuilder('u')
             ->orderBy('u.id', 'DESC');
 
@@ -38,11 +38,9 @@ final class AdminUserController extends AbstractController
                 ->setParameter('q', '%' . $q . '%');
         }
 
-        // Total pour calcul des pages
         $countQb = clone $qb;
         $total = (int) $countQb->select('COUNT(u.id)')->getQuery()->getSingleScalarResult();
 
-        // Résultats paginés
         $users = $qb->setFirstResult($offset)
             ->setMaxResults($limit)
             ->getQuery()
@@ -68,7 +66,6 @@ final class AdminUserController extends AbstractController
     ): Response {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
-        // ✅ Sécurité CSRF : empêche les requêtes forgées
         if (!$this->isCsrfTokenValid('toggle_admin_'.$id, (string) $request->request->get('_token'))) {
             $this->addFlash('danger', 'Token CSRF invalide.');
             return $this->redirectToRoute('admin_users_index');
@@ -80,29 +77,13 @@ final class AdminUserController extends AbstractController
             return $this->redirectToRoute('admin_users_index');
         }
 
-        // ✅ On évite de se retirer ses propres droits admin par accident
-        $currentUser = $this->getUser();
-        if ($currentUser instanceof User && $currentUser->getId() === $user->getId()) {
-            $this->addFlash('warning', 'Action refusée : tu ne peux pas modifier ton propre rôle admin ici.');
-            return $this->redirectToRoute('admin_users_index');
-        }
+        // ✅ Fine-grained : seul SUPER_ADMIN (ou GM via hiérarchie) peut toggler admin
+        $this->denyAccessUnlessGranted(UserRoleVoter::TOGGLE_ADMIN, $user);
 
-        /**
-         * ⚠️ IMPORTANT :
-         * getRoles() ajoute automatiquement ROLE_USER + rôle du guildRank,
-         * donc pour stocker en base on doit manipuler uniquement les rôles "bruts".
-         *
-         * Comme ton User ne propose pas getRawRoles(), on fait une approche safe :
-         * - on récupère les rôles stockés via une réflexion : ici on réutilise setRoles()
-         * - et on évite d'écrire les rôles injectés.
-         *
-         * ✅ Solution propre recommandée plus tard : ajouter getStoredRoles(): array dans User.
-         */
-        $storedRoles = (new \ReflectionClass($user))->getProperty('roles');
-        $storedRoles->setAccessible(true);
-        $roles = (array) $storedRoles->getValue($user);
+        // ✅ Rôles stockés uniquement (pas getRoles() !)
+        $roles = $user->getStoredRoles();
 
-        if (in_array('ROLE_ADMIN', $roles, true)) {
+        if (\in_array('ROLE_ADMIN', $roles, true)) {
             $roles = array_values(array_filter($roles, static fn (string $r) => $r !== 'ROLE_ADMIN'));
             $user->setRoles($roles);
             $this->addFlash('success', 'Rôle admin retiré ✅');
@@ -117,9 +98,46 @@ final class AdminUserController extends AbstractController
         return $this->redirectToRoute('admin_users_index');
     }
 
-    /**
-     * ✅ Édition du grade de guilde via enum GuildRank.
-     */
+    #[Route('/{id}/toggle-gm', name: 'admin_users_toggle_gm', methods: ['POST'])]
+    public function toggleGm(
+        int $id,
+        Request $request,
+        UserRepository $userRepository,
+        EntityManagerInterface $em
+    ): Response {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        if (!$this->isCsrfTokenValid('toggle_gm_'.$id, (string) $request->request->get('_token'))) {
+            $this->addFlash('danger', 'Token CSRF invalide.');
+            return $this->redirectToRoute('admin_users_index');
+        }
+
+        $user = $userRepository->find($id);
+        if (!$user) {
+            $this->addFlash('danger', 'Utilisateur introuvable.');
+            return $this->redirectToRoute('admin_users_index');
+        }
+
+        // ✅ Fine-grained + bonus dernier GM géré dans le Voter
+        $this->denyAccessUnlessGranted(UserRoleVoter::TOGGLE_GM, $user);
+
+        $roles = $user->getStoredRoles();
+
+        if (\in_array('ROLE_GM', $roles, true)) {
+            $roles = array_values(array_filter($roles, static fn (string $r) => $r !== 'ROLE_GM'));
+            $user->setRoles($roles);
+            $this->addFlash('success', 'Rôle GM retiré ✅');
+        } else {
+            $roles[] = 'ROLE_GM';
+            $user->setRoles(array_values(array_unique($roles)));
+            $this->addFlash('success', 'Utilisateur promu GM ✅');
+        }
+
+        $em->flush();
+
+        return $this->redirectToRoute('admin_users_index');
+    }
+
     #[Route('/{id}/guild-rank', name: 'admin_users_guild_rank', methods: ['GET', 'POST'])]
     public function editGuildRank(
         User $user,

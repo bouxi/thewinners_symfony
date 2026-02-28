@@ -27,12 +27,17 @@ class Application
     #[ORM\Column]
     private ?int $id = null;
 
-    /**
-     * 1 candidature max par user => OneToOne + unique.
-     */
+  
     #[ORM\OneToOne(inversedBy: 'guildApplication')]
     #[ORM\JoinColumn(unique: true, nullable: false, onDelete: 'CASCADE')]
     private ?User $user = null;
+
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'RESTRICT')]
+    private ?Personnage $personnage = null;
+
+    #[ORM\Column(length: 50)]
+    private string $playerName = '';
 
     #[ORM\Column(length: 40)]
     private string $class = '';
@@ -146,6 +151,18 @@ class Application
     public function getPlaytime(): ?string
     {
         return $this->playtime;
+    }
+
+
+    public function getPersonnage(): ?Personnage
+    {
+        return $this->personnage;
+    }
+
+    public function setPersonnage(Personnage $personnage): self
+    {
+        $this->personnage = $personnage;
+        return $this;
     }
 
     public function setPlaytime(?string $playtime): self
@@ -281,6 +298,26 @@ class Application
                 $message->setApplication(null);
             }
         }
+
+        return $this;
+    }
+
+    /**
+     * Get the value of playerName
+     */ 
+    public function getPlayerName()
+    {
+        return $this->playerName;
+    }
+
+    /**
+     * Set the value of playerName
+     *
+     * @return  self
+     */ 
+    public function setPlayerName($playerName)
+    {
+        $this->playerName = $playerName;
 
         return $this;
     }

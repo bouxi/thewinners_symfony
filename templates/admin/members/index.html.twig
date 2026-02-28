@@ -1,0 +1,78 @@
+{% extends 'admin/admin_base.html.twig' %}
+
+{% block title %}Admin - Membres{% endblock %}
+{% block admin_title %}Membres{% endblock %}
+{% block admin_subtitle %}Gérer visibilité publique, classe/spé, rôle combat{% endblock %}
+
+{% block admin_content %}
+    <div class="card bg-dark border-danger">
+        <div class="card-body">
+
+            {% if users is empty %}
+                <div class="text-muted">Aucun utilisateur.</div>
+            {% else %}
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover align-middle mb-0">
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Pseudo</th>
+                            <th>Grade</th>
+                            <th>Membre</th>
+                            <th>Public</th>
+                            <th>Classe</th>
+                            <th>Spé</th>
+                            <th>Rôle</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for u in users %}
+                            <tr>
+                                <td>#{{ u.id }}</td>
+                                <td class="fw-semibold">{{ u.pseudo }}</td>
+                                <td>{{ u.guildRank.label() }}</td>
+
+                                <td>
+                                    {% if u.isGuildMember %}
+                                        <span class="badge bg-success">oui</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">non</span>
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    {% if u.isPublicMember %}
+                                        <span class="badge bg-info text-dark">visible</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">privé</span>
+                                    {% endif %}
+                                </td>
+
+                                <td>{{ u.characterClass ?? '—' }}</td>
+                                <td>{{ u.characterSpec ?? '—' }}</td>
+
+                                <td>
+                                    {% if u.combatRole %}
+                                        {{ u.combatRole.label() }}
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </td>
+
+                                <td class="text-end">
+                                    <a class="btn btn-sm btn-outline-light"
+                                       href="{{ path('admin_members_edit', {id: u.id}) }}">
+                                        Modifier
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+
+        </div>
+    </div>
+{% endblock %}

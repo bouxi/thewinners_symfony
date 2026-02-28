@@ -206,8 +206,13 @@ a:hover {
 
 
 /* Overlay sombre (au-dessus de l'image, mais sous le contenu) */
+body {
+    position: relative; /* ✅ nécessaire pour ancrer body::before */
+}
+
 body::before {
-    position: absolute;     /* ⬅️ PAS fixed */
+    content: "";         /* ✅ OBLIGATOIRE */
+    position: absolute;  /* comme tu veux, on garde */
     inset: 0;
     min-height: 100%;
     background: rgba(0, 0, 0, 0.6);
@@ -467,4 +472,20 @@ footer {
 .guild-apply-form .form-control:focus {
     border-color: #dc3545;
     box-shadow: 0 0 0 0.15rem rgba(220, 53, 69, 0.25);
+}
+
+/* ✅ Fix : modal toujours au-dessus + cliquable */
+.modal {
+  z-index: 3000 !important;
+}
+
+.modal-backdrop {
+  z-index: 2990 !important;
+}
+
+/* ✅ S’assure que le contenu prend bien les interactions */
+.modal,
+.modal-dialog,
+.modal-content {
+  pointer-events: auto !important;
 }

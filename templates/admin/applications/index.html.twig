@@ -77,6 +77,14 @@
                                 </td>
 
                                 <td>
+                                    {{ a.personnage.name }}
+                                    <small class="text-muted">
+                                        ({{ a.personnage.class }} / {{ a.personnage.spec }})
+                                    </small>
+                                </td>
+
+
+                                <td>
                                     {% if a.submittedAt is defined and a.submittedAt %}
                                         {{ a.submittedAt|date('d/m/Y H:i') }}
                                     {% else %}

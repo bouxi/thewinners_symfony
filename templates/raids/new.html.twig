@@ -4,28 +4,38 @@
 
 {% block body %}
     <div class="container py-4">
-        <h1>Créer un raid</h1>
-
-        {{ form_start(form) }}
-        <div class="row g-3">
-            <div class="col-12">
-                {{ form_row(form.title) }}
-            </div>
+        <div class="row justify-content-center">
             <div class="col-md-6">
-                {{ form_row(form.startsAt) }}
+                <div class="card bg-dark border-danger shadow-lg">
+                    <div class="card-header bg-black border-bottom border-danger text-center py-3">
+                        <h1 class="text-danger fw-bold mb-0">
+                            Créer un raid
+                        </h1>
+                    </div>
+                    <div class="card-body p-4">
+                        {{ form_start(form) }}
+                    
+                            <div class="col-12">
+                                {{ form_row(form.title) }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form_row(form.startsAt) }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form_row(form.endsAt) }}
+                            </div>
+                            <div class="col-12">
+                                {{ form_row(form.description) }}
+                            </div>
+                    
+                        <div class="mt-3 d-flex gap-2">
+                            <button class="btn btn-danger">Créer</button>
+                            <a class="btn btn-outline-secondary" href="{{ path('raids_calendar') }}">Annuler</a>
+                        </div>
+                        {{ form_end(form) }}
+                    </div>
+                </div>
             </div>
-            <div class="col-md-6">
-                {{ form_row(form.endsAt) }}
-            </div>
-            <div class="col-12">
-                {{ form_row(form.description) }}
-            </div>
-        </div>
-
-        <div class="mt-3 d-flex gap-2">
-            <button class="btn btn-danger">Créer</button>
-            <a class="btn btn-outline-secondary" href="{{ path('raids_calendar') }}">Annuler</a>
-        </div>
-        {{ form_end(form) }}
+        </div>  
     </div>
 {% endblock %}

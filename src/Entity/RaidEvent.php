@@ -43,6 +43,9 @@ class RaidEvent
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $description = null;
 
+    #[ORM\Column(length: 30)]
+    private string $raidKey;
+
     /**
      * Créateur du raid (tout ROLE_USER peut créer).
      */
@@ -93,4 +96,15 @@ class RaidEvent
 
     /** @return Collection<int, RaidSignup> */
     public function getSignups(): Collection { return $this->signups; }
+
+    public function getRaidKey(): string
+    {
+        return $this->raidKey;
+    }
+
+    public function setRaidKey(string $raidKey): self
+    {
+        $this->raidKey = $raidKey;
+        return $this;
+    }
 }
