@@ -6,10 +6,11 @@ namespace App\Controller;
 
 use App\Entity\RaidEvent;
 use App\Entity\User;
+use App\Enum\RaidRole;
 use App\Form\RaidEventType;
 use App\Repository\RaidEventRepository;
 use App\Repository\RaidSignupRepository;
-use App\Service\RaidData;
+use App\Service\RaidCompositionService;
 use App\Service\RaidManager;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -17,8 +18,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
-use App\Enum\RaidRole;
-use App\Service\RaidCompositionService;
 
 #[Route('/raids')]
 final class RaidController extends AbstractController
@@ -39,6 +38,7 @@ final class RaidController extends AbstractController
     ): Response {
         $this->denyAccessUnlessGranted('ROLE_USER');
 
+        /** @var User $me */
         $me = $this->getUser();
         \assert($me instanceof User);
 
@@ -53,9 +53,9 @@ final class RaidController extends AbstractController
 
         // Indexation par jour (Y-m-d) pour le calendrier
         $raidsByDay = [];
-        foreach ($raids as $raid) {
-            $key = $raid->getStartsAt()->format('Y-m-d');
-            $raidsByDay[$key][] = $raid;
+        foreach ($raids as $r) {
+            $key = $r->getStartsAt()->format('Y-m-d');
+            $raidsByDay[$key][] = $r;
         }
 
         // ✅ Form "Créer un raid" (modal)
@@ -65,7 +65,6 @@ final class RaidController extends AbstractController
 
         // ✅ POST : si le modal est soumis
         if ($form->isSubmitted()) {
-
             // Anti-spam : max 3 créations/minute
             $limit = $raidCreateLimiter->create('user_'.$me->getId());
             if (!$limit->consume(1)->isAccepted()) {
@@ -75,14 +74,23 @@ final class RaidController extends AbstractController
 
             if ($form->isValid()) {
                 try {
-                    // ✅ Titre auto si vide (fallback)
-                    $title = trim($raid->getTitle());
-                    if ($title === '') {
-                        $raidKey = $raid->getRaidKey();
-                        $raid->setTitle(RaidData::CHOICES[$raidKey] ?? 'Raid');
+                    /**
+                     * ✅ FIX IMPORTANT :
+                     * - Quand un champ TextType est vide, Symfony peut envoyer `null`
+                     * - Ton entity attend string -> crash si setTitle(null)
+                     *
+                     * => On force une string safe + fallback automatique
+                     */
+                    $safeTitle = trim((string) $raid->getTitle());
+
+                    if ($safeTitle === '') {
+                        $raid->setTitle($raidComp->getLabel($raid->getRaidKey()));
+                    } else {
+                        $raid->setTitle($safeTitle);
                     }
 
                     $raidManager->createRaid($me, $raid);
+
                     $this->addFlash('success', 'Raid créé ✅');
                     return $this->redirectToRoute('raids_show', ['id' => $raid->getId()]);
                 } catch (\InvalidArgumentException $e) {
@@ -101,22 +109,25 @@ final class RaidController extends AbstractController
 
             // ✅ map raidKey => label (ICC 25, etc.)
             'raidLabels' => $raidComp->getRaidLabels(),
+
             // ✅ form modal
             'createForm' => $form->createView(),
         ]);
     }
 
     /**
-     * ✅ Route existante "new" conservée (page dédiée)
+     * ✅ Page dédiée "new" (optionnelle)
      */
     #[Route('/new', name: 'raids_new', methods: ['GET', 'POST'])]
     public function new(
         Request $request,
         RaidManager $raidManager,
+        RaidCompositionService $raidComp,
         #[Autowire(service: 'limiter.raid_create')] RateLimiterFactory $raidCreateLimiter
     ): Response {
         $this->denyAccessUnlessGranted('ROLE_USER');
 
+        /** @var User $me */
         $me = $this->getUser();
         \assert($me instanceof User);
 
@@ -133,14 +144,16 @@ final class RaidController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             try {
-                // ✅ Titre auto si vide (fallback)
-                $title = trim($raid->getTitle());
-                if ($title === '') {
-                    $raidKey = $raid->getRaidKey();
-                    $raid->setTitle(RaidData::CHOICES[$raidKey] ?? 'Raid');
+                $safeTitle = trim((string) $raid->getTitle());
+
+                if ($safeTitle === '') {
+                    $raid->setTitle($raidComp->getLabel($raid->getRaidKey()));
+                } else {
+                    $raid->setTitle($safeTitle);
                 }
 
                 $raidManager->createRaid($me, $raid);
+
                 $this->addFlash('success', 'Raid créé ✅');
                 return $this->redirectToRoute('raids_show', ['id' => $raid->getId()]);
             } catch (\InvalidArgumentException $e) {
@@ -156,20 +169,41 @@ final class RaidController extends AbstractController
     #[Route('/{id}', name: 'raids_show', methods: ['GET'])]
     public function show(
         RaidEvent $raid,
-        RaidSignupRepository $signupRepo
+        RaidSignupRepository $signupRepo,
+        RaidCompositionService $raidComp
     ): Response {
         $this->denyAccessUnlessGranted('ROLE_USER');
 
+        /** @var User $me */
         $me = $this->getUser();
         \assert($me instanceof User);
 
         $signups = $signupRepo->findForRaid($raid);
         $alreadySigned = $signupRepo->findOneByRaidAndUser($raid, $me) !== null;
 
+        // ✅ Label du raid (ICC 25, Naxx, ...)
+        $raidLabel = $raidComp->getLabel($raid->getRaidKey());
+
+        // ✅ Roster bars (targets/counts/pct)
+        $targets = $raidComp->getTargets($raid->getRaidKey());
+        $counts = $raidComp->countRoles($signups);
+
+        $pct = [
+            'tank' => $targets['tank'] > 0 ? (int) round(min(100, ($counts['tank'] / $targets['tank']) * 100)) : 0,
+            'heal' => $targets['heal'] > 0 ? (int) round(min(100, ($counts['heal'] / $targets['heal']) * 100)) : 0,
+            'dps'  => $targets['dps']  > 0 ? (int) round(min(100, ($counts['dps']  / $targets['dps'])  * 100)) : 0,
+        ];
+
         return $this->render('raids/show.html.twig', [
             'raid' => $raid,
+            'raidLabel' => $raidLabel,
             'signups' => $signups,
             'alreadySigned' => $alreadySigned,
+
+            // 👇 pour les progress bars
+            'targets' => $targets,
+            'counts' => $counts,
+            'pct' => $pct,
         ]);
     }
 
@@ -182,6 +216,7 @@ final class RaidController extends AbstractController
     ): Response {
         $this->denyAccessUnlessGranted('ROLE_USER');
 
+        /** @var User $me */
         $me = $this->getUser();
         \assert($me instanceof User);
 
@@ -226,6 +261,7 @@ final class RaidController extends AbstractController
     ): Response {
         $this->denyAccessUnlessGranted('ROLE_USER');
 
+        /** @var User $me */
         $me = $this->getUser();
         \assert($me instanceof User);
 
