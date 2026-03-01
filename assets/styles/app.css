@@ -502,13 +502,6 @@ footer {
   pointer-events: auto !important;
 }
 
-/* Navbar toujours au-dessus du contenu */
-nav.navbar,
-.navbar {
-  position: sticky; /* ou fixed si tu préfères, mais sticky est souvent mieux */
-  top: 0;
-  z-index: 9999;
-}
 
 /* Le contenu de page ne doit jamais recouvrir la navbar */
 main, section {
