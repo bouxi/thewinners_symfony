@@ -22,7 +22,7 @@ body {
     flex-direction: column;
     color: white;
     background: transparent;
-    padding-top: 70px; /* pour laisser de la place à la navbar */   
+       
 
     /* IMPORTANT : crée un contexte pour que ::before puisse être derrière le contenu */
    /* position: relative; */
