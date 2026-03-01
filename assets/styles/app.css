@@ -10,7 +10,8 @@ body {
     display: flex;
     flex-direction: column;
     color: white;
-    background: transparent; /* ⬅️ laisse l’image de html visible */
+    background: transparent;
+    padding-top: 70px; /* pour laisser de la place à la navbar */   
 
     /* IMPORTANT : crée un contexte pour que ::before puisse être derrière le contenu */
    /* position: relative; */
@@ -488,4 +489,18 @@ footer {
 .modal-dialog,
 .modal-content {
   pointer-events: auto !important;
+}
+
+/* Navbar toujours au-dessus du contenu */
+nav.navbar,
+.navbar {
+  position: sticky; /* ou fixed si tu préfères, mais sticky est souvent mieux */
+  top: 0;
+  z-index: 9999;
+}
+
+/* Le contenu de page ne doit jamais recouvrir la navbar */
+main, section {
+  position: relative;
+  z-index: 1;
 }

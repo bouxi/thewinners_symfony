@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Form;
 
 use App\Entity\Personnage;
+use App\Form\EventSubscriber\PersonnageSpecSubscriber;
 use App\Service\WowData;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -16,17 +17,9 @@ final class PersonnageType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        // ✅ Classes
         $classChoices = [];
-        foreach (array_keys(WowData::CLASSES) as $className) {
-            $classChoices[$className] = $className;
-        }
-
-        // ✅ Specs par défaut (sera remplacé dynamiquement par JS)
-        $firstClass = array_key_first(WowData::CLASSES);
-        $specChoices = [];
-        foreach (WowData::CLASSES[$firstClass] as $spec) {
-            $specChoices[$spec] = $spec;
+        foreach (array_keys(WowData::CLASSES) as $class) {
+            $classChoices[$class] = $class;
         }
 
         $builder
@@ -34,26 +27,27 @@ final class PersonnageType extends AbstractType
                 'label' => 'Nom du personnage',
                 'required' => true,
                 'attr' => [
-                    'placeholder' => 'Ex: Bouxî',
+                    'maxlength' => 50,
                 ],
             ])
-
-            // ⚠️ champ entity = "class"
             ->add('class', ChoiceType::class, [
                 'label' => 'Classe',
-                'required' => true,
                 'choices' => $classChoices,
                 'placeholder' => '— Choisir —',
+                'required' => true,
             ])
-
-            // ⚠️ champ entity = "spec"
+            // Champ vide au départ (sera reconstruit par le Subscriber)
             ->add('spec', ChoiceType::class, [
                 'label' => 'Spécialisation',
+                'choices' => [],
+                'placeholder' => '— Choisir d’abord une classe —',
                 'required' => true,
-                'choices' => $specChoices,
-                'placeholder' => '— Choisir —',
+                'disabled' => true,
             ])
         ;
+
+        // 🔥 Ajout du Subscriber PRO
+        $builder->addEventSubscriber(new PersonnageSpecSubscriber());
     }
 
     public function configureOptions(OptionsResolver $resolver): void

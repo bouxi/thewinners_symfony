@@ -10,7 +10,6 @@ final class WowData
      * Mapping officiel WotLK 3.3.5
      */
     public const CLASSES = [
-
         'Guerrier' => ['Armes', 'Fureur', 'Protection'],
         'Paladin' => ['Sacré', 'Protection', 'Vindicte'],
         'Chasseur' => ['Précision', 'Survie', 'Maîtrise des bêtes'],

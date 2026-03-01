@@ -27,8 +27,9 @@
 </head>
 
 <body class="d-flex flex-column min-vh-100 bg-dark text-light">
-
-{% include 'partials/navbar.html.twig' %}
+<header>
+    {% include 'partials/navbar.html.twig' %}
+</header>
 
 <main class="flex-fill">
     {% block body %}{% endblock %}

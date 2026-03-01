@@ -46,6 +46,7 @@ final class PersonnageController extends AbstractController
 
         return $this->render('admin/personnage/new.html.twig', [
             'form' => $form->createView(),
+            'wow'  => \App\Service\WowData::CLASSES, // TEMP (prochaine étape: provider JSON)
         ]);
     }
 }

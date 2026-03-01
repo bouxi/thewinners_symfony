@@ -7,10 +7,11 @@
 
     <h1 class="mb-3">Ajouter mon personnage (Admin)</h1>
 
-    {# ✅ messages flash #}
-    {% for label, messages in app.flashes %}
-        {% for message in messages %}
-            <div class="alert alert-{{ label }} mb-3">{{ message }}</div>
+    {% for label, messagesFlash in app.flashes %}
+        {% for message in messagesFlash %}
+            <div class="alert alert-{{ label }} mb-3">
+                {{ message }}
+            </div>
         {% endfor %}
     {% endfor %}
 
@@ -23,9 +24,7 @@
                 {{ form_row(form.class) }}
                 {{ form_row(form.spec) }}
 
-                <button class="btn btn-success mt-2">
-                    Enregistrer
-                </button>
+                <button class="btn btn-success mt-2">Enregistrer</button>
 
                 <a class="btn btn-secondary mt-2" href="{{ path('guild_members') }}">
                     Retour
@@ -38,47 +37,51 @@
 
 </div>
 
+{# ✅ On injecte wow depuis le controller, pas via constant() #}
+<script id="wow-data" type="application/json">
+{{ wow|json_encode(constant('JSON_UNESCAPED_UNICODE'))|raw }}
+</script>
+
 <script>
-    (function () {
-        const WOW_CLASSES = {{ constant('App\\\\Service\\\\WowData::CLASSES')|json_encode|raw }};
+(function () {
+    const wow = JSON.parse(document.getElementById('wow-data').textContent || '{}');
 
-        const classSelect = document.getElementById('{{ form.class.vars.id }}');
-        const specSelect  = document.getElementById('{{ form.spec.vars.id }}');
+    const classSelect = document.getElementById('{{ form.class.vars.id }}');
+    const specSelect  = document.getElementById('{{ form.spec.vars.id }}');
 
-        if (!classSelect || !specSelect) return;
+    if (!classSelect || !specSelect) return;
 
-        function resetSpecs(specs) {
-            specSelect.innerHTML = '';
+    function resetSpecs() {
+        specSelect.innerHTML = '<option value="">— Choisir d’abord une classe —</option>';
+        specSelect.disabled = true;
+    }
 
-            // placeholder
-            const placeholder = document.createElement('option');
-            placeholder.value = '';
-            placeholder.textContent = '— Choisir —';
-            specSelect.appendChild(placeholder);
+    function fillSpecs(className) {
+        const specs = wow[className] || [];
+        specSelect.innerHTML = '<option value="">— Choisir une spécialisation —</option>';
 
-            // options
-            specs.forEach(spec => {
-                const opt = document.createElement('option');
-                opt.value = spec;
-                opt.textContent = spec;
-                specSelect.appendChild(opt);
-            });
-        }
+        specs.forEach(spec => {
+            const opt = document.createElement('option');
+            opt.value = spec;
+            opt.textContent = spec;
+            specSelect.appendChild(opt);
+        });
 
-        function onClassChange() {
-            const selectedClass = classSelect.value;
+        specSelect.disabled = false;
+    }
 
-            if (!selectedClass || !WOW_CLASSES[selectedClass]) {
-                resetSpecs([]);
-                return;
-            }
+    classSelect.addEventListener('change', function () {
+        const selected = this.value;
+        if (!selected || !wow[selected]) return resetSpecs();
+        fillSpecs(selected);
+    });
 
-            resetSpecs(WOW_CLASSES[selectedClass]);
-        }
-
-        // init + listener
-        onClassChange();
-        classSelect.addEventListener('change', onClassChange);
-    })();
+    // ✅ init : si une classe est déjà sélectionnée
+    if (classSelect.value && wow[classSelect.value]) {
+        fillSpecs(classSelect.value);
+    } else {
+        resetSpecs();
+    }
+})();
 </script>
 {% endblock %}
