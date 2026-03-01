@@ -1,7 +1,14 @@
 html, body {
     height: 100%;
     font-family: "Comic Sans MS", cursive;
+    margin: 0;
+    padding: 0;
 
+}
+
+header {
+    margin: 0;
+    padding: 0;
 }
 
 
