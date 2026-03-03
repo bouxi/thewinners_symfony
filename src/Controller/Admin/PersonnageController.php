@@ -31,7 +31,9 @@ final class PersonnageController extends AbstractController
         // ✅ Relation "propre" (synchronise les deux côtés)
         $user->addPersonnage($personnage);
 
-        $form = $this->createForm(PersonnageType::class, $personnage);
+        $form = $this->createForm(PersonnageType::class, $personnage, [
+            'admin' => true, // ✅ pour afficher les champs admin
+        ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -47,6 +49,28 @@ final class PersonnageController extends AbstractController
         return $this->render('admin/personnage/new.html.twig', [
             'form' => $form->createView(),
             'wow'  => \App\Service\WowData::CLASSES, // TEMP (prochaine étape: provider JSON)
+        ]);
+    }
+
+    #[Route('/{id}/edit', name: 'edit', methods: ['GET', 'POST'])]
+    public function edit(Personnage $personnage, Request $request, EntityManagerInterface $em): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $form = $this->createForm(PersonnageType::class, $personnage, [
+            'admin' => true,
+        ]);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $em->flush();
+            $this->addFlash('success', 'Personnage modifié ✅');
+            return $this->redirectToRoute('guild_members');
+        }
+
+        return $this->render('admin/personnage/edit.html.twig', [
+            'form' => $form->createView(),
+            'wow'  => \App\Service\WowData::CLASSES, // pour JS class/spec (temp)
         ]);
     }
 }
