@@ -1,12 +1,13 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Ajouter mon personnage{% endblock %}
+{% block title %}Modifier mon personnage{% endblock %}
 
 {% block body %}
 <div class="container py-4">
 
-    <h1 class="mb-3">Ajouter mon personnage (Admin)</h1>
+    <h1 class="mb-3">Modifier mon personnage (Admin)</h1>
 
+    {# ✅ messages flash #}
     {% for label, messagesFlash in app.flashes %}
         {% for message in messagesFlash %}
             <div class="alert alert-{{ label }} mb-3">
@@ -23,13 +24,17 @@
                 {{ form_row(form.name) }}
                 {{ form_row(form.class) }}
                 {{ form_row(form.spec) }}
+
+                {# ✅ champs admin #}
                 {{ form_row(form.combatRole) }}
                 {{ form_row(form.profession1) }}
                 {{ form_row(form.profession2) }}
                 {{ form_row(form.isMain) }}
                 {{ form_row(form.isPublic) }}
 
-                <button class="btn btn-success mt-2">Enregistrer</button>
+                <button class="btn btn-success mt-2">
+                    Enregistrer
+                </button>
 
                 <a class="btn btn-secondary mt-2" href="{{ path('guild_members') }}">
                     Retour
@@ -42,9 +47,9 @@
 
 </div>
 
-{# ✅ On injecte wow depuis le controller, pas via constant() #}
+{# ✅ (temp) on reste sur WowData direct, et ensuite Option B remplacera ce bloc #}
 <script id="wow-data" type="application/json">
-{{ wow|json_encode(constant('JSON_UNESCAPED_UNICODE'))|raw }}
+{{ constant('App\\\\Service\\\\WowData::CLASSES')|json_encode(constant('JSON_UNESCAPED_UNICODE'))|raw }}
 </script>
 
 <script>
@@ -61,14 +66,16 @@
         specSelect.disabled = true;
     }
 
-    function fillSpecs(className) {
+    function fillSpecs(className, selectedSpec) {
         const specs = wow[className] || [];
+
         specSelect.innerHTML = '<option value="">— Choisir une spécialisation —</option>';
 
         specs.forEach(spec => {
             const opt = document.createElement('option');
             opt.value = spec;
             opt.textContent = spec;
+            if (selectedSpec && selectedSpec === spec) opt.selected = true;
             specSelect.appendChild(opt);
         });
 
@@ -76,14 +83,20 @@
     }
 
     classSelect.addEventListener('change', function () {
-        const selected = this.value;
-        if (!selected || !wow[selected]) return resetSpecs();
-        fillSpecs(selected);
+        const selectedClass = this.value;
+        if (!selectedClass || !wow[selectedClass]) {
+            resetSpecs();
+            return;
+        }
+        fillSpecs(selectedClass, null);
     });
 
-    // ✅ init : si une classe est déjà sélectionnée
-    if (classSelect.value && wow[classSelect.value]) {
-        fillSpecs(classSelect.value);
+    // ✅ init : si déjà une classe en édition, on remplit en gardant la spec actuelle
+    const initialClass = classSelect.value;
+    const initialSpec  = specSelect.value;
+
+    if (initialClass && wow[initialClass]) {
+        fillSpecs(initialClass, initialSpec);
     } else {
         resetSpecs();
     }
