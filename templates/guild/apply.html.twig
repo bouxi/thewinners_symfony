@@ -13,103 +13,58 @@
         {% endfor %}
     {% endfor %}
 
-    {% if wow is empty %}
-        <div class="alert alert-danger mb-4">
-            ⚠️ Le référentiel des classes WoW est indisponible.
-        </div>
-    {% endif %}
-
     <h1 class="mb-2 display-5">Postuler chez les TheWinners</h1>
 
-    {% if wow is not empty %}
-        <div class="card bg-dark border-danger shadow-lg p-3">
-            <form method="post" action="{{ path('guild_apply') }}">
-                <input type="hidden" name="_token" value="{{ csrf_token('guild_apply') }}">
+    <div
+        class="card bg-dark border-danger shadow-lg p-3"
+        data-personnage-form
+        data-specs-url-template="{{ path('api_wow_specs') ~ '?class=__CLASS__' }}"
+        data-class-selector="#classSelect"
+        data-spec-selector="#specSelect"
+    >
+        <form method="post" action="{{ path('guild_apply') }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('guild_apply') }}">
 
-                <div class="mb-3">
-                    <label class="form-label text-light">Nom du personnage</label>
-                    <input type="text"
-                           name="player_name"
-                           class="form-control"
-                           maxlength="50"
-                           required
-                           value="{{ old.player_name|default('') }}">
-                </div>
+            <div class="mb-3">
+                <label class="form-label text-light">Nom du personnage</label>
+                <input type="text"
+                       name="player_name"
+                       class="form-control"
+                       maxlength="50"
+                       required
+                       value="{{ old.player_name|default('') }}">
+            </div>
 
-                <div class="mb-3">
-                    <label class="form-label text-light">Classe</label>
-                    <select id="classSelect" name="class" class="form-select" required>
-                        <option value="">— Choisir une classe —</option>
-                        {% set oldClass = old.class|default('') %}
-                        {% for className, specs in wow %}
-                            <option value="{{ className }}" {% if oldClass == className %}selected{% endif %}>
-                                {{ className }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
+            <div class="mb-3">
+                <label class="form-label text-light">Classe</label>
+                <select id="classSelect" name="class" class="form-select" required>
+                    <option value="">— Choisir une classe —</option>
+                    {% set oldClass = old.class|default('') %}
+                    {% for className in wow_classes %}
+                        <option value="{{ className }}" {% if oldClass == className %}selected{% endif %}>
+                            {{ className }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
 
-                <div class="mb-3">
-                    <label class="form-label text-light">Spécialisation</label>
-                    <select id="specSelect" name="specialization" class="form-select" required disabled>
-                        <option value="">— Choisir d’abord une classe —</option>
-                    </select>
-                </div>
+            <div class="mb-3">
+                <label class="form-label text-light">Spécialisation</label>
+                <select id="specSelect" name="specialization" class="form-select" required>
+                    <option value="">— Choisir d’abord une classe —</option>
+                </select>
+            </div>
 
-                <div class="mb-3">
-                    <label class="form-label text-light">Motivation</label>
-                    <textarea name="motivation"
-                              class="form-control"
-                              rows="5"
-                              required>{{ old.motivation|default('') }}</textarea>
-                </div>
+            <div class="mb-3">
+                <label class="form-label text-light">Motivation</label>
+                <textarea name="motivation"
+                          class="form-control"
+                          rows="5"
+                          required>{{ old.motivation|default('') }}</textarea>
+            </div>
 
-                <button class="btn btn-danger">Envoyer ma candidature</button>
-            </form>
-        </div>
-    {% endif %}
+            <button class="btn btn-danger">Envoyer ma candidature</button>
+        </form>
+    </div>
 </div>
-
-<script id="wow-data" type="application/json">
-{{ wow|json_encode(constant('JSON_UNESCAPED_UNICODE'))|raw }}
-</script>
-
-<script>
-(function () {
-    const wow = JSON.parse(document.getElementById('wow-data').textContent || '{}');
-    const classSelect = document.getElementById('classSelect');
-    const specSelect  = document.getElementById('specSelect');
-
-    function resetSpecs() {
-        specSelect.innerHTML = '<option value="">— Choisir d’abord une classe —</option>';
-        specSelect.disabled = true;
-    }
-
-    function fillSpecs(className) {
-        const specs = wow[className] || [];
-        specSelect.innerHTML = '<option value="">— Choisir une spécialisation —</option>';
-
-        specs.forEach(spec => {
-            const opt = document.createElement('option');
-            opt.value = spec;
-            opt.textContent = spec;
-            specSelect.appendChild(opt);
-        });
-
-        specSelect.disabled = false;
-    }
-
-    classSelect.addEventListener('change', () => {
-        const selected = classSelect.value;
-        if (!selected || !wow[selected]) {
-            resetSpecs();
-            return;
-        }
-        fillSpecs(selected);
-    });
-
-    resetSpecs();
-})();
-</script>
-
 {% endblock %}

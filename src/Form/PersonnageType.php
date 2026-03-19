@@ -62,6 +62,7 @@ final class PersonnageType extends AbstractType
                     'class' => CombatRole::class,
                     'required' => false,
                     'placeholder' => '— Choisir —',
+                    'choice_label' => fn (?CombatRole $role) => $role?->label() ?? '',
                 ])
                 ->add('profession1', TextType::class, [
                     'label' => 'Profession 1',

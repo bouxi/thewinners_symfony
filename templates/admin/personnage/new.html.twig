@@ -15,7 +15,13 @@
         {% endfor %}
     {% endfor %}
 
-    <div class="card bg-dark text-white border-0">
+    <div
+        class="card bg-dark text-white border-0"
+        data-personnage-form
+        data-specs-url-template="{{ path('api_wow_specs') ~ '?class=__CLASS__' }}"
+        data-class-selector="#{{ form.class.vars.id }}"
+        data-spec-selector="#{{ form.spec.vars.id }}"
+    >
         <div class="card-body">
 
             {{ form_start(form) }}
@@ -41,52 +47,4 @@
     </div>
 
 </div>
-
-{# ✅ On injecte wow depuis le controller, pas via constant() #}
-<script id="wow-data" type="application/json">
-{{ wow|json_encode(constant('JSON_UNESCAPED_UNICODE'))|raw }}
-</script>
-
-<script>
-(function () {
-    const wow = JSON.parse(document.getElementById('wow-data').textContent || '{}');
-
-    const classSelect = document.getElementById('{{ form.class.vars.id }}');
-    const specSelect  = document.getElementById('{{ form.spec.vars.id }}');
-
-    if (!classSelect || !specSelect) return;
-
-    function resetSpecs() {
-        specSelect.innerHTML = '<option value="">— Choisir d’abord une classe —</option>';
-        specSelect.disabled = true;
-    }
-
-    function fillSpecs(className) {
-        const specs = wow[className] || [];
-        specSelect.innerHTML = '<option value="">— Choisir une spécialisation —</option>';
-
-        specs.forEach(spec => {
-            const opt = document.createElement('option');
-            opt.value = spec;
-            opt.textContent = spec;
-            specSelect.appendChild(opt);
-        });
-
-        specSelect.disabled = false;
-    }
-
-    classSelect.addEventListener('change', function () {
-        const selected = this.value;
-        if (!selected || !wow[selected]) return resetSpecs();
-        fillSpecs(selected);
-    });
-
-    // ✅ init : si une classe est déjà sélectionnée
-    if (classSelect.value && wow[classSelect.value]) {
-        fillSpecs(classSelect.value);
-    } else {
-        resetSpecs();
-    }
-})();
-</script>
 {% endblock %}

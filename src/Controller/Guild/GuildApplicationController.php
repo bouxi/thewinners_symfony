@@ -53,6 +53,7 @@ final class GuildApplicationController extends AbstractController
             return $this->render('guild/apply.html.twig', [
                 'wow' => $wow,
                 'old' => $old,
+                'wow_classes' => array_keys(\App\Service\WowData::CLASSES),
             ]);
         };
 

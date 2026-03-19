@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Entity\Personnage;
+use App\Enum\CombatRole;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
-use App\Enum\CombatRole;
 
 /**
  * @extends ServiceEntityRepository<Personnage>
@@ -21,6 +21,8 @@ class PersonnageRepository extends ServiceEntityRepository
 
     /**
      * Récupère les personnages publics d'un utilisateur
+     *
+     * @return Personnage[]
      */
     public function findPublicByUser(int $userId): array
     {
@@ -35,11 +37,13 @@ class PersonnageRepository extends ServiceEntityRepository
     }
 
     /**
-     * Liste publique des membres :
-     * - persos publics uniquement
-     * - jointure sur User (évite N+1)
-     * - filtre optionnel par rôle (tank/heal/dps)
-     * - on met les "main" en premier sans exclure les autres
+     * ✅ Liste publique des membres réels de la guilde
+     *
+     * Règles :
+     * - personnage public uniquement
+     * - utilisateur public uniquement
+     * - utilisateur accepté dans la guilde uniquement
+     * - filtre optionnel par rôle (tank / heal / dps)
      *
      * @return Personnage[]
      */
@@ -48,19 +52,20 @@ class PersonnageRepository extends ServiceEntityRepository
         $qb = $this->createQueryBuilder('p')
             ->innerJoin('p.user', 'u')
             ->addSelect('u')
-            ->andWhere('p.isPublic = :public')
-            ->setParameter('public', true);
+            ->andWhere('p.isPublic = :personnagePublic')
+            ->andWhere('u.isPublicMember = :userPublic')
+            ->andWhere('u.isGuildMember = :isGuildMember')
+            ->setParameter('personnagePublic', true)
+            ->setParameter('userPublic', true)
+            ->setParameter('isGuildMember', true);
 
-        // Filtre rôle (si demandé)
+        // ✅ On garde le filtre rôle
         if ($role !== null) {
             $qb->andWhere('p.combatRole = :role')
                ->setParameter('role', $role);
         }
 
-        // ✅ Tri "pro" :
-        // - les mains en premier
-        // - puis les plus récents
-        // - puis par pseudo pour un ordre stable
+        // ✅ Tri propre
         $qb->addOrderBy('p.isMain', 'DESC')
            ->addOrderBy('p.createdAt', 'DESC')
            ->addOrderBy('u.pseudo', 'ASC');

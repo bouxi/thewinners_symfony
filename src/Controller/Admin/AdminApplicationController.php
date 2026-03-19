@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace App\Controller\Admin;
 
+use App\Entity\ApplicationMessage;
 use App\Enum\ApplicationStatus;
 use App\Enum\GuildRank;
+use App\Repository\ApplicationMessageRepository;
 use App\Repository\GuildApplicationRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use App\Repository\ApplicationMessageRepository;
-use App\Entity\ApplicationMessage;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 
 #[Route('/admin/applications')]
 final class AdminApplicationController extends AbstractController
@@ -24,7 +24,6 @@ final class AdminApplicationController extends AbstractController
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
-        // Filtre status en query (?status=pending|accepted|rejected)
         $statusRaw = trim((string) $request->query->get('status', ''));
 
         $allowed = [
@@ -64,14 +63,12 @@ final class AdminApplicationController extends AbstractController
             throw $this->createNotFoundException('Candidature introuvable.');
         }
 
-        // ✅ CSRF
         $token = (string) $request->request->get('_token');
         if (!$this->isCsrfTokenValid('admin_app_set_status_' . $application->getId(), $token)) {
             $this->addFlash('danger', 'Token CSRF invalide.');
             return $this->redirectToRoute('admin_applications_index');
         }
 
-        // ✅ Nouveau statut depuis POST
         $newStatusRaw = trim((string) $request->request->get('status', ''));
 
         $allowed = [
@@ -88,34 +85,40 @@ final class AdminApplicationController extends AbstractController
         $newStatus = ApplicationStatus::from($newStatusRaw);
         $application->setStatus($newStatus);
 
+        $user = $application->getUser();
+
         /**
          * ✅ Règle métier :
-         * Si ACCEPTED => l'utilisateur passe automatiquement en RECRUE.
+         * - ACCEPTED  => devient membre de guilde
+         * - PENDING/REJECTED => n'est pas encore (ou plus) membre
          */
         if ($newStatus === ApplicationStatus::ACCEPTED) {
-            $user = $application->getUser();
+            $user->setIsGuildMember(true);
 
-            // On ne touche pas au grade si déjà membre / officier / etc.
-            // (optionnel, mais c'est plus "pro")
+            // Si l'utilisateur est encore simple visiteur, on le passe recrue
             if ($user->getGuildRank() === GuildRank::VISITOR) {
                 $user->setGuildRank(GuildRank::RECRUE);
             }
 
-            // Optionnel si ton entity a ce champ
             if (method_exists($application, 'setHasJoinedGuild')) {
                 $application->setHasJoinedGuild(true);
             }
-        }
+        } else {
+            $user->setIsGuildMember(false);
 
-        /**
-         * (Optionnel) si REFUSED => tu peux laisser VISITOR ou ne rien changer
-         * selon ta logique de guilde.
-         */
+            // ✅ Si tu veux revenir à VISITOR quand ce n'est plus accepté
+            if ($user->getGuildRank() === GuildRank::RECRUE) {
+                $user->setGuildRank(GuildRank::VISITOR);
+            }
+
+            if (method_exists($application, 'setHasJoinedGuild')) {
+                $application->setHasJoinedGuild(false);
+            }
+        }
 
         $em->flush();
         $this->addFlash('success', 'Statut mis à jour ✅');
 
-        // Retour au filtre courant (query d'abord, sinon hidden input)
         $currentFilter = (string) $request->query->get('status', '');
         if ($currentFilter === '') {
             $currentFilter = (string) $request->request->get('current_status_filter', '');
@@ -139,7 +142,6 @@ final class AdminApplicationController extends AbstractController
             throw $this->createNotFoundException('Candidature introuvable.');
         }
 
-        // ✅ ICI on récupère les messages liés à cette candidature
         $messages = $applicationMessageRepository->findBy(
             ['application' => $application],
             ['createdAt' => 'ASC']
@@ -165,7 +167,6 @@ final class AdminApplicationController extends AbstractController
             throw $this->createNotFoundException('Candidature introuvable.');
         }
 
-        // ✅ CSRF
         if (
             !$this->isCsrfTokenValid(
                 'admin_reply_' . $application->getId(),
@@ -183,10 +184,9 @@ final class AdminApplicationController extends AbstractController
             return $this->redirectToRoute('admin_applications_show', ['id' => $id]);
         }
 
-        // ✅ Création du message (ADMIN = sender)
         $message = new ApplicationMessage();
         $message->setApplication($application);
-        $message->setSender($this->getUser()); // ADMIN
+        $message->setSender($this->getUser());
         $message->setContent($content);
         $message->setCreatedAt(new \DateTimeImmutable());
 
