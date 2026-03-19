@@ -4,7 +4,6 @@ on:
   push:
     branches: ["main"]
 
-# Empêche 2 déploiements en même temps (push rapprochés)
 concurrency:
   group: deploy-production
   cancel-in-progress: true
@@ -13,8 +12,6 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    # Si tu crées un Environment "production", décommente la ligne suivante :
-    # environment: production
 
     steps:
       - name: Checkout
@@ -30,5 +27,12 @@ jobs:
           script: |
             set -e
             cd "${{ secrets.VPS_PATH }}"
+
             chmod +x deploy.sh
             ./deploy.sh main
+
+            # 🔥 AJOUT IMPORTANT
+            php bin/console app:sync-guild-members --env=prod
+
+            # Optionnel mais recommandé
+            php bin/console cache:clear --env=prod
