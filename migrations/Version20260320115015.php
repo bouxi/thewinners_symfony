@@ -14,6 +14,11 @@ final class Version20260320115015 extends AbstractMigration
         return 'Corrige les dates de consentement manquantes dans user_consent';
     }
 
+    public function isTransactional(): bool
+    {
+        return false;
+    }
+
     public function up(Schema $schema): void
     {
         // Si privacy_accepted = 1 mais privacy_accepted_at est NULL,
