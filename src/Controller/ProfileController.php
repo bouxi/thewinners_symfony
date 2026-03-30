@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Repository\UserConsentRepository;
 use App\Form\ChangePasswordType;
 use App\Form\ProfileType;
 use App\Service\AvatarUploader;
@@ -110,6 +111,22 @@ final class ProfileController extends AbstractController
         return $this->render('profile/index.html.twig', [
             'profileForm' => $profileForm->createView(),
             'passwordForm' => $passwordForm->createView(),
+        ]);
+    }
+
+    #[Route('/profile/consents', name: 'app_profile_consents', methods: ['GET'])]
+    public function consents(UserConsentRepository $userConsentRepository): Response
+    {
+        $user = $this->getUser();
+
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException('Vous devez être connecté.');
+        }
+
+        $consent = $userConsentRepository->findOneBy(['user' => $user]);
+
+        return $this->render('profile/consents.html.twig', [
+            'consent' => $consent,
         ]);
     }
 }

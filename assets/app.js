@@ -7,5 +7,10 @@ import './stimulus_bootstrap.js';
  */
 // import './styles/app.css';
 import './js/personnage-form.js';
+import { initCookieConsent } from './js/cookie-consent.js';
+
+document.addEventListener('DOMContentLoaded', () => {
+    initCookieConsent();
+});
 
 console.log('This log comes from assets/app.js - welcome to AssetMapper! 🎉');

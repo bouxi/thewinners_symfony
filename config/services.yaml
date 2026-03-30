@@ -9,6 +9,9 @@
 parameters:
     app.avatar_dir: '%kernel.project_dir%/public/uploads/avatars'
     app.avatar_max_size: 2097152 # 2*1024*1024
+    app.legal_versions.privacy: '1.0'
+    app.legal_versions.terms: '1.0'
+    app.legal_versions.cookies: '1.2'
 
 services:
     # default configuration for services in *this* file

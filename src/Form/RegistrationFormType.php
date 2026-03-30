@@ -8,6 +8,7 @@ use App\Entity\User;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
+use Symfony\Component\Validator\Constraints\IsTrue;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -63,12 +64,22 @@ class RegistrationFormType extends AbstractType
                 ],
             ])
 
-            // Exemple de case à cocher "conditions d'utilisation"
-            ->add('agreeTerms', CheckboxType::class, [
-                'label' => 'J\'accepte les conditions d\'utilisation',
+            ->add('acceptTerms', CheckboxType::class, [
                 'mapped' => false,
+                'label' => "J'accepte les conditions générales d'utilisation",
                 'constraints' => [
-                    new Assert\IsTrue(message: 'Vous devez accepter les conditions pour vous inscrire.'),
+                    new IsTrue(
+                        message: 'Vous devez accepter les conditions générales pour créer un compte.'
+                    ),
+                ],
+            ])
+            ->add('acceptPrivacy', CheckboxType::class, [
+                'mapped' => false,
+                'label' => "J'ai lu et j'accepte la politique de confidentialité",
+                'constraints' => [
+                    new IsTrue(
+                        message: 'Vous devez accepter la politique de confidentialité pour créer un compte.'
+                    ),
                 ],
             ])
         ;

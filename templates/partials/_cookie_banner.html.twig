@@ -1,0 +1,31 @@
+<div
+    id="cookie-banner"
+    class="cookie-banner"
+    data-consent-url="{{ path('app_consent_cookies') }}"
+    hidden
+>
+    <div class="cookie-banner__content">
+        <div class="cookie-banner__text">
+            <h3 class="cookie-banner__title">Respect de votre vie privée</h3>
+            <p class="cookie-banner__description">
+                Nous utilisons des cookies strictement nécessaires au fonctionnement du site
+                et, avec votre accord, des cookies optionnels pour améliorer votre expérience.
+                Consultez notre
+                <a href="{{ path('app_legal_privacy') }}">politique de confidentialité</a>,
+                notre
+                <a href="{{ path('app_legal_cookies') }}">politique cookies</a>
+                et nos
+                <a href="{{ path('app_legal_terms') }}">conditions générales</a>.
+            </p>
+        </div>
+
+        <div class="cookie-banner__actions">
+            <button type="button" class="btn btn-outline-light" data-cookie-action="reject">
+                Refuser
+            </button>
+            <button type="button" class="btn btn-danger" data-cookie-action="accept">
+                Accepter
+            </button>
+        </div>
+    </div>
+</div>

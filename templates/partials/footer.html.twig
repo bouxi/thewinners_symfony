@@ -68,6 +68,9 @@
                     <a class="btn btn-sm btn-outline-danger" href="{{ path('app_messages') }}">Messages</a>
                     {# Active quand route calendrier #}
                     <a class="btn btn-sm btn-outline-light" href="{{ path('raids_calendar') }}">Calendrier raids</a>
+                    <button type="button" id="manage-cookies" class="btn btn-sm btn-outline-primary">
+                        Gérer mes cookies
+                    </button>
                 </div>
             </div>
         </div>
@@ -78,8 +81,10 @@
             <div>© {{ "now"|date("Y") }} TheWinners — For the Horde.</div>
             <div class="d-flex gap-3">
                 <a class="tw-footer-link" href="https://discord.gg/2StvrwJ87h">Discord</a>
-                <a class="tw-footer-link" href="#">Contact</a>
-                <a class="tw-footer-link" href="#">Mentions légales</a>
+                <a class="tw-footer-link" href="mailto:webmaster@thewinnersguilde.fr">Contact</a>
+                <a class="tw-footer-link" href="{{ path('app_legal_privacy') }}">Politique de confidentialité</a>
+                <a class="tw-footer-link" href="{{ path('app_legal_cookies') }}">Politique cookies</a>
+                <a class="tw-footer-link" href="{{ path('app_legal_terms') }}">Conditions générales d'utilisation</a>
             </div>
         </div>
 

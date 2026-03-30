@@ -39,11 +39,21 @@
                         </div>
 
                         <div class="form-check mb-3">
-                            {{ form_widget(registrationForm.agreeTerms, {'attr': {'class': 'form-check-input'}}) }}
-                            {{ form_label(registrationForm.agreeTerms, null, {'label_attr': {'class': 'form-check-label'}}) }}
-                            {{ form_errors(registrationForm.agreeTerms) }}
+                            {{ form_widget(registrationForm.acceptTerms, {'attr': {'class': 'form-check-input'}}) }}
+                            <label class="form-check-label" for="{{ registrationForm.acceptTerms.vars.id }}">
+                                J'accepte les <a href="{{ path('app_legal_terms') }}" target="_blank">conditions générales d'utilisation</a>
+                            </label>
+                            {{ form_errors(registrationForm.acceptTerms) }}
                         </div>
 
+                        <div class="form-check mb-3">
+                            {{ form_widget(registrationForm.acceptPrivacy, {'attr': {'class': 'form-check-input'}}) }}
+                            <label class="form-check-label" for="{{ registrationForm.acceptPrivacy.vars.id }}">
+                                J'ai lu et j'accepte la <a href="{{ path('app_legal_privacy') }}" target="_blank">politique de confidentialité</a>
+                            </label>
+                            {{ form_errors(registrationForm.acceptPrivacy) }}
+                        </div>
+                        
                         <button type="submit" class="btn btn-danger w-100 fw-bold mt-2">
                             M'inscrire
                         </button>

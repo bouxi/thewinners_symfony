@@ -13,6 +13,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
+use App\Entity\UserConsent;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 /**
  * Gère l'inscription des nouveaux utilisateurs.
@@ -26,7 +28,8 @@ class RegistrationController extends AbstractController
     public function register(
         Request $request,
         UserPasswordHasherInterface $passwordHasher,
-        EntityManagerInterface $em
+        EntityManagerInterface $em,
+        ParameterBagInterface $parameterBag
     ): Response {
         // On crée un nouvel utilisateur vide
         $user = new User();
@@ -54,8 +57,23 @@ class RegistrationController extends AbstractController
             // dateInscription est déjà initialisé dans le constructeur,
             // mais tu peux forcer ici si tu veux une autre logique.
 
-            // Persistance en BDD
+            // Persistance de User en BDD
             $em->persist($user);
+
+            // Enregistrement du consentement légal lors de l'inscription
+            // (CGU + politique de confidentialité)
+            $now = new \DateTimeImmutable();
+
+            $userConsent = new UserConsent();
+            $userConsent->setUser($user);
+            $userConsent->setPrivacyAccepted(true);
+            $userConsent->setTermsAccepted(true);
+            $userConsent->setPrivacyVersion((string) $parameterBag->get('app.legal_versions.privacy'));
+            $userConsent->setTermsVersion((string) $parameterBag->get('app.legal_versions.terms'));
+            $userConsent->setPrivacyAcceptedAt($now);
+            $userConsent->setTermsAcceptedAt($now);
+
+            $em->persist($userConsent);
             $em->flush();
 
             // Message flash pour notifier l'utilisateur

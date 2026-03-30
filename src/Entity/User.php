@@ -13,6 +13,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use App\Entity\UserConsent;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
@@ -124,6 +125,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(type: 'boolean')]
     private bool $isPublicMember = true;
+
+    #[ORM\OneToOne(mappedBy: 'user', cascade: ['persist', 'remove'])]
+    private ?UserConsent $userConsent = null;
 
 
     public function __construct()
@@ -439,6 +443,23 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setIsPublicMember(bool $isPublicMember): self
     {
         $this->isPublicMember = $isPublicMember;
+        return $this;
+    }
+
+    public function getUserConsent(): ?UserConsent
+    {
+        return $this->userConsent;
+    }
+
+    public function setUserConsent(?UserConsent $userConsent): self
+    {
+        $this->userConsent = $userConsent;
+
+        // On garde la cohérence entre les deux côtés de la relation
+        if ($userConsent !== null && $userConsent->getUser() !== $this) {
+            $userConsent->setUser($this);
+        }
+
         return $this;
     }
 

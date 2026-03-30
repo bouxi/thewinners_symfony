@@ -45,9 +45,12 @@
             </div>
         </div>
 
+    
+
         {# ===============================
            PERSONNAGE WOW
            =============================== #}
+        
         <div class="col-12 col-lg-6">
             <div class="card bg-black bg-opacity-50 border-danger text-light h-100">
                 <div class="card-header border-danger">
@@ -88,7 +91,7 @@
                 </div>
             </div>
         </div>
-
+        
         {# ===============================
            MOT DE PASSE
            =============================== #}
@@ -108,6 +111,25 @@
                 </div>
             </div>
         </div>
+
+        {# ===============================
+           PRÉFÉRENCES
+           =============================== #}
+           
+        <div class="col-8 col-lg-6">
+            <div class="card bg-black bg-opacity-50 border-danger text-light h-100">
+                <div class="card-header border-danger">
+                    <strong>Préférences</strong>
+                </div>
+
+                <div class="card-body">
+                    <a class="btn btn-sm btn-outline-light" href="{{ path('app_profile_consents') }}">
+                        Mes consentements
+                    </a>
+                </div>
+            </div>
+        </div>
+        
 
     </div>
 </div>
