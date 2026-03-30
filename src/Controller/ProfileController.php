@@ -15,6 +15,8 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use App\Entity\UserConsent;
 
 #[Route('/profile')]
 final class ProfileController extends AbstractController
@@ -115,8 +117,11 @@ final class ProfileController extends AbstractController
     }
 
     #[Route('/profile/consents', name: 'app_profile_consents', methods: ['GET'])]
-    public function consents(UserConsentRepository $userConsentRepository): Response
-    {
+    public function consents(
+        UserConsentRepository $userConsentRepository,
+        EntityManagerInterface $entityManager,
+        ParameterBagInterface $parameterBag
+    ): Response {
         $user = $this->getUser();
 
         if (!$user instanceof User) {
@@ -124,6 +129,26 @@ final class ProfileController extends AbstractController
         }
 
         $consent = $userConsentRepository->findOneBy(['user' => $user]);
+
+        if (!$consent) {
+            $consent = new UserConsent();
+            $consent->setUser($user);
+            $consent->setPrivacyAccepted(true);
+            $consent->setTermsAccepted(true);
+            $consent->setCookiesAccepted(false);
+            $consent->setPrivacyVersion((string) $parameterBag->get('app.legal_versions.privacy'));
+            $consent->setTermsVersion((string) $parameterBag->get('app.legal_versions.terms'));
+
+            $fallbackDate = method_exists($user, 'getDateInscription') && $user->getDateInscription() !== null
+                ? $user->getDateInscription()
+                : new \DateTimeImmutable();
+
+            $consent->setPrivacyAcceptedAt($fallbackDate);
+            $consent->setTermsAcceptedAt($fallbackDate);
+
+            $entityManager->persist($consent);
+            $entityManager->flush();
+        }
 
         return $this->render('profile/consents.html.twig', [
             'consent' => $consent,
