@@ -31,4 +31,37 @@ final class UserConsentRepository extends ServiceEntityRepository
             ->getQuery()
             ->getOneOrNullResult();
     }
+
+    /**
+     * Retourne la liste des consentements avec leur utilisateur.
+     *
+     * @return UserConsent[]
+     */
+    public function findAllWithUsers(?string $filter = null): array
+    {
+        $qb = $this->createQueryBuilder('uc')
+            ->leftJoin('uc.user', 'u')
+            ->addSelect('u')
+            ->orderBy('u.id', 'DESC');
+
+        if ($filter === 'cookies_accepted') {
+            $qb->andWhere('uc.cookiesAccepted = :accepted')
+                ->setParameter('accepted', true);
+        }
+
+        if ($filter === 'cookies_refused') {
+            $qb->andWhere('uc.cookiesAccepted = :accepted')
+                ->setParameter('accepted', false);
+        }
+
+        if ($filter === 'missing_cookie_choice') {
+            $qb->andWhere('uc.cookieChoice IS NULL');
+        }
+
+        if ($filter === 'missing_legal_dates') {
+            $qb->andWhere('uc.termsAcceptedAt IS NULL OR uc.privacyAcceptedAt IS NULL');
+        }
+
+        return $qb->getQuery()->getResult();
+    }
 }

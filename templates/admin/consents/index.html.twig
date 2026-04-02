@@ -1,0 +1,129 @@
+{% extends 'admin/admin_base.html.twig' %}
+
+{% block title %}Consentements utilisateurs{% endblock %}
+
+{% block body %}
+    <div class="container py-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+            <div>
+                <h1 class="h3 mb-1">Consentements utilisateurs</h1>
+                <p class="text-muted mb-0">
+                    Vue d’ensemble des consentements légaux et cookies.
+                </p>
+            </div>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2 mb-4">
+            <a href="{{ path('admin_consents_index') }}"
+               class="btn btn-sm {{ current_filter is empty ? 'btn-danger' : 'btn-outline-danger' }}">
+                Tous
+            </a>
+            <a href="{{ path('admin_consents_index', { filter: 'cookies_accepted' }) }}"
+               class="btn btn-sm {{ current_filter == 'cookies_accepted' ? 'btn-danger' : 'btn-outline-danger' }}">
+                Cookies acceptés
+            </a>
+            <a href="{{ path('admin_consents_index', { filter: 'cookies_refused' }) }}"
+               class="btn btn-sm {{ current_filter == 'cookies_refused' ? 'btn-danger' : 'btn-outline-danger' }}">
+                Cookies refusés
+            </a>
+            <a href="{{ path('admin_consents_index', { filter: 'missing_cookie_choice' }) }}"
+               class="btn btn-sm {{ current_filter == 'missing_cookie_choice' ? 'btn-danger' : 'btn-outline-danger' }}">
+                Sans choix cookies
+            </a>
+            <a href="{{ path('admin_consents_index', { filter: 'missing_legal_dates' }) }}"
+               class="btn btn-sm {{ current_filter == 'missing_legal_dates' ? 'btn-danger' : 'btn-outline-danger' }}">
+                Dates légales manquantes
+            </a>
+        </div>
+
+        <div class="card bg-dark text-light border-danger shadow-sm">
+            <div class="card-header border-danger">
+                <strong>Liste des consentements</strong>
+            </div>
+
+            <div class="card-body p-0">
+                {% if consents is not empty %}
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>ID user</th>
+                                    <th>Pseudo</th>
+                                    <th>Email</th>
+                                    <th>CGU</th>
+                                    <th>Confidentialité</th>
+                                    <th>Cookies</th>
+                                    <th>Choix cookies</th>
+                                    <th>Versions</th>
+                                    <th>Dates</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for consent in consents %}
+                                    <tr>
+                                        <td>{{ consent.user.id }}</td>
+                                        <td>{{ consent.user.pseudo }}</td>
+                                        <td>{{ consent.user.email }}</td>
+
+                                        <td>
+                                            {% if consent.termsAccepted %}
+                                                <span class="badge text-bg-success">Oui</span>
+                                            {% else %}
+                                                <span class="badge text-bg-danger">Non</span>
+                                            {% endif %}
+                                        </td>
+
+                                        <td>
+                                            {% if consent.privacyAccepted %}
+                                                <span class="badge text-bg-success">Oui</span>
+                                            {% else %}
+                                                <span class="badge text-bg-danger">Non</span>
+                                            {% endif %}
+                                        </td>
+
+                                        <td>
+                                            {% if consent.cookiesAccepted %}
+                                                <span class="badge text-bg-success">Oui</span>
+                                            {% else %}
+                                                <span class="badge text-bg-danger">Non</span>
+                                            {% endif %}
+                                        </td>
+
+                                        <td>
+                                            {{ consent.cookieChoice ?? '—' }}
+                                        </td>
+
+                                        <td class="small">
+                                            <div><strong>CGU :</strong> {{ consent.termsVersion ?? '—' }}</div>
+                                            <div><strong>Conf. :</strong> {{ consent.privacyVersion ?? '—' }}</div>
+                                            <div><strong>Cookies :</strong> {{ consent.cookiesVersion ?? '—' }}</div>
+                                        </td>
+
+                                        <td class="small">
+                                            <div>
+                                                <strong>CGU :</strong>
+                                                {{ consent.termsAcceptedAt ? consent.termsAcceptedAt|date('d/m/Y H:i') : '—' }}
+                                            </div>
+                                            <div>
+                                                <strong>Conf. :</strong>
+                                                {{ consent.privacyAcceptedAt ? consent.privacyAcceptedAt|date('d/m/Y H:i') : '—' }}
+                                            </div>
+                                            <div>
+                                                <strong>Cookies :</strong>
+                                                {{ consent.cookiesAcceptedAt ? consent.cookiesAcceptedAt|date('d/m/Y H:i') : '—' }}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="p-4 text-muted">
+                        Aucun consentement trouvé pour ce filtre.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
