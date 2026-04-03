@@ -11,102 +11,81 @@
             </p>
         </div>
 
-        <div class="mb-5">
-            <h2 class="h4 text-warning mb-4">Grandes catégories</h2>
+        <div class="row g-5">
+            <div class="col-lg-4">
+                <aside class="card bg-dark text-light border-danger shadow-sm">
+                    <div class="card-body">
+                        <h2 class="h4 text-warning mb-4">Navigation des guides</h2>
 
-            {% if rootCategories is not empty %}
-                <div class="row g-4">
-                    {% for category in rootCategories %}
-                        <div class="col-md-6 col-xl-3">
-                            <div class="card h-100 bg-dark text-light border-danger shadow-sm">
-                                <div class="card-body">
-                                    <h3 class="h5 card-title mb-3">
-                                        {{ category.name }}
-                                    </h3>
-
-                                    {% if category.description %}
-                                        <p class="card-text text-light-emphasis">
-                                            {{ category.description }}
-                                        </p>
-                                    {% else %}
-                                        <p class="card-text text-light-emphasis">
-                                            Explorer les guides liés à cette catégorie.
-                                        </p>
-                                    {% endif %}
-                                </div>
-
-                                <div class="card-footer bg-transparent border-top border-secondary">
-                                    <a href="{{ path('guides_category_show', { slug: category.slug }) }}"
-                                       class="btn btn-outline-danger btn-sm">
-                                        Ouvrir la catégorie
-                                    </a>
-                                </div>
+                        {% if guideTree is not empty %}
+                            {% include 'guides/_tree.html.twig' with { nodes: guideTree } only %}
+                        {% else %}
+                            <div class="alert alert-secondary mb-0">
+                                Aucune catégorie n’est encore disponible.
                             </div>
-                        </div>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <div class="alert alert-secondary mb-0">
-                    Aucune catégorie n’est encore disponible.
-                </div>
-            {% endif %}
-        </div>
+                        {% endif %}
+                    </div>
+                </aside>
+            </div>
 
-        <div>
-            <h2 class="h4 text-warning mb-4">Derniers guides publiés</h2>
+            <div class="col-lg-8">
+                <div class="mb-4">
+                    <h2 class="h4 text-warning mb-4">Derniers guides publiés</h2>
 
-            {% if latestGuides is not empty %}
-                <div class="row g-4">
-                    {% for guide in latestGuides %}
-                        <div class="col-md-6 col-xl-4">
-                            <div class="card h-100 bg-dark text-light border-secondary shadow-sm">
-                                <div class="card-body">
-                                    <h3 class="h5 card-title mb-2">
-                                        {{ guide.title }}
-                                    </h3>
+                    {% if latestGuides is not empty %}
+                        <div class="row g-4">
+                            {% for guide in latestGuides %}
+                                <div class="col-md-6">
+                                    <div class="card h-100 bg-dark text-light border-secondary shadow-sm">
+                                        <div class="card-body">
+                                            <h3 class="h5 card-title mb-2">
+                                                {{ guide.title }}
+                                            </h3>
 
-                                    <p class="small text-light-emphasis mb-2">
-                                        Catégorie :
-                                        <a href="{{ path('guides_category_show', { slug: guide.category.slug }) }}"
-                                           class="link-danger text-decoration-none">
-                                            {{ guide.category.name }}
-                                        </a>
-                                    </p>
+                                            <p class="small text-light-emphasis mb-2">
+                                                Catégorie :
+                                                <a href="{{ path('guides_category_show', { slug: guide.category.slug }) }}"
+                                                   class="link-danger text-decoration-none">
+                                                    {{ guide.category.name }}
+                                                </a>
+                                            </p>
 
-                                    {% if guide.excerpt %}
-                                        <p class="card-text text-light-emphasis">
-                                            {{ guide.excerpt }}
-                                        </p>
-                                    {% else %}
-                                        <p class="card-text text-light-emphasis">
-                                            Ce guide est disponible en lecture complète.
-                                        </p>
-                                    {% endif %}
+                                            {% if guide.excerpt %}
+                                                <p class="card-text text-light-emphasis">
+                                                    {{ guide.excerpt }}
+                                                </p>
+                                            {% else %}
+                                                <p class="card-text text-light-emphasis">
+                                                    Ce guide est disponible en lecture complète.
+                                                </p>
+                                            {% endif %}
+                                        </div>
+
+                                        <div class="card-footer bg-transparent border-top border-secondary d-flex justify-content-between align-items-center">
+                                            <small class="text-light-emphasis">
+                                                {% if guide.publishedAt %}
+                                                    {{ guide.publishedAt|date('d/m/Y') }}
+                                                {% else %}
+                                                    Non daté
+                                                {% endif %}
+                                            </small>
+
+                                            <a href="{{ path('guides_show', { slug: guide.slug }) }}"
+                                               class="btn btn-danger btn-sm">
+                                                Lire le guide
+                                            </a>
+                                        </div>
+                                    </div>
                                 </div>
-
-                                <div class="card-footer bg-transparent border-top border-secondary d-flex justify-content-between align-items-center">
-                                    <small class="text-light-emphasis">
-                                        {% if guide.publishedAt %}
-                                            {{ guide.publishedAt|date('d/m/Y') }}
-                                        {% else %}
-                                            Non daté
-                                        {% endif %}
-                                    </small>
-
-                                    <a href="{{ path('guides_show', { slug: guide.slug }) }}"
-                                       class="btn btn-danger btn-sm">
-                                        Lire le guide
-                                    </a>
-                                </div>
-                            </div>
+                            {% endfor %}
                         </div>
-                    {% endfor %}
+                    {% else %}
+                        <div class="alert alert-secondary mb-0">
+                            Aucun guide publié pour le moment.
+                        </div>
+                    {% endif %}
                 </div>
-            {% else %}
-                <div class="alert alert-secondary mb-0">
-                    Aucun guide publié pour le moment.
-                </div>
-            {% endif %}
+            </div>
         </div>
     </section>
 {% endblock %}
