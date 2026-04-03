@@ -17,11 +17,6 @@ final class GuideCategoryFixtures extends Fixture
     {
         $position = 0;
 
-        /*
-         * =========================
-         * Catégories racines
-         * =========================
-         */
         $classes = $this->createCategory(
             name: 'Classes',
             slug: 'classes',
@@ -29,6 +24,7 @@ final class GuideCategoryFixtures extends Fixture
             position: $position++
         );
         $manager->persist($classes);
+        $this->addReference('guide_category_classes', $classes);
 
         $raids = $this->createCategory(
             name: 'Raids',
@@ -37,6 +33,7 @@ final class GuideCategoryFixtures extends Fixture
             position: $position++
         );
         $manager->persist($raids);
+        $this->addReference('guide_category_raids', $raids);
 
         $dungeons = $this->createCategory(
             name: 'Donjons',
@@ -45,6 +42,7 @@ final class GuideCategoryFixtures extends Fixture
             position: $position++
         );
         $manager->persist($dungeons);
+        $this->addReference('guide_category_donjons', $dungeons);
 
         $professions = $this->createCategory(
             name: 'Métiers',
@@ -53,16 +51,19 @@ final class GuideCategoryFixtures extends Fixture
             position: $position++
         );
         $manager->persist($professions);
+        $this->addReference('guide_category_metiers', $professions);
 
-        /*
-         * =========================
-         * Classes
-         * =========================
-         */
         $this->createClassTree($manager, $classes, 'Démoniste', 'demoniste', [
             'Affliction' => 'affliction',
             'Démonologie' => 'demonologie',
             'Destruction' => 'destruction',
+        ], [
+            'class' => 'guide_category_demoniste',
+            'specs' => [
+                'Affliction' => 'guide_category_affliction',
+                'Démonologie' => 'guide_category_demonologie',
+                'Destruction' => 'guide_category_destruction',
+            ],
         ]);
 
         $this->createClassTree($manager, $classes, 'Voleur', 'voleur', [
@@ -75,6 +76,11 @@ final class GuideCategoryFixtures extends Fixture
             'Sacré' => 'sacre-paladin',
             'Protection' => 'protection-paladin',
             'Vindicte' => 'vindicte',
+        ], [
+            'class' => 'guide_category_paladin',
+            'specs' => [
+                'Vindicte' => 'guide_category_vindicte',
+            ],
         ]);
 
         $this->createClassTree($manager, $classes, 'Guerrier', 'guerrier', [
@@ -99,6 +105,11 @@ final class GuideCategoryFixtures extends Fixture
             'Discipline' => 'discipline',
             'Sacré' => 'sacre-pretre',
             'Ombre' => 'ombre',
+        ], [
+            'class' => 'guide_category_pretre',
+            'specs' => [
+                'Discipline' => 'guide_category_discipline',
+            ],
         ]);
 
         $this->createClassTree($manager, $classes, 'Druide', 'druide', [
@@ -119,16 +130,17 @@ final class GuideCategoryFixtures extends Fixture
             'Impie' => 'impie',
         ]);
 
-        /*
-         * =========================
-         * Raids
-         * =========================
-         */
         $this->createRaidTree($manager, $raids, 'ICC', 'icc', [
             '10 normal' => 'icc-10-normal',
             '25 normal' => 'icc-25-normal',
             '10 héroïque' => 'icc-10-heroique',
             '25 héroïque' => 'icc-25-heroique',
+        ], [
+            'raid' => 'guide_category_icc',
+            'modes' => [
+                '10 normal' => 'guide_category_icc_10_normal',
+                '25 héroïque' => 'guide_category_icc_25_heroique',
+            ],
         ]);
 
         $this->createRaidTree($manager, $raids, 'Ulduar', 'ulduar', [
@@ -151,23 +163,17 @@ final class GuideCategoryFixtures extends Fixture
             '25 normal' => 'sanctum-rubis-25-normal',
         ]);
 
-        /*
-         * =========================
-         * Donjons
-         * =========================
-         */
-        $this->createSimpleChild($manager, $dungeons, 'Fosse de Saron', 'fosse-de-saron', 0);
+        $fosseDeSaron = $this->createSimpleChild($manager, $dungeons, 'Fosse de Saron', 'fosse-de-saron', 0);
+        $this->addReference('guide_category_fosse_de_saron', $fosseDeSaron);
+
         $this->createSimpleChild($manager, $dungeons, 'Salle des Reflets', 'salle-des-reflets', 1);
         $this->createSimpleChild($manager, $dungeons, 'Donjon des âmes', 'donjon-des-ames', 2);
         $this->createSimpleChild($manager, $dungeons, 'Cime d’Utgarde', 'cime-dutgarde', 3);
         $this->createSimpleChild($manager, $dungeons, 'Gundrak', 'gundrak', 4);
 
-        /*
-         * =========================
-         * Métiers
-         * =========================
-         */
-        $this->createSimpleChild($manager, $professions, 'Alchimie', 'alchimie', 0);
+        $alchimie = $this->createSimpleChild($manager, $professions, 'Alchimie', 'alchimie', 0);
+        $this->addReference('guide_category_alchimie', $alchimie);
+
         $this->createSimpleChild($manager, $professions, 'Couture', 'couture', 1);
         $this->createSimpleChild($manager, $professions, 'Forge', 'forge', 2);
         $this->createSimpleChild($manager, $professions, 'Enchantement', 'enchantement', 3);
@@ -182,9 +188,6 @@ final class GuideCategoryFixtures extends Fixture
         $manager->flush();
     }
 
-    /**
-     * Crée une catégorie simple.
-     */
     private function createCategory(
         string $name,
         string $slug,
@@ -205,16 +208,16 @@ final class GuideCategoryFixtures extends Fixture
     }
 
     /**
-     * Crée une branche "classe > spécialisations".
-     *
      * @param array<string, string> $specializations
+     * @param array{class?: string, specs?: array<string, string>} $references
      */
     private function createClassTree(
         ObjectManager $manager,
         GuideCategory $root,
         string $className,
         string $classSlug,
-        array $specializations
+        array $specializations,
+        array $references = []
     ): void {
         $classCategory = $this->createCategory(
             name: $className,
@@ -224,6 +227,10 @@ final class GuideCategoryFixtures extends Fixture
             parent: $root
         );
         $manager->persist($classCategory);
+
+        if (isset($references['class'])) {
+            $this->addReference($references['class'], $classCategory);
+        }
 
         $position = 0;
         foreach ($specializations as $name => $slug) {
@@ -235,20 +242,24 @@ final class GuideCategoryFixtures extends Fixture
                 parent: $classCategory
             );
             $manager->persist($specialization);
+
+            if (isset($references['specs'][$name])) {
+                $this->addReference($references['specs'][$name], $specialization);
+            }
         }
     }
 
     /**
-     * Crée une branche "raid > modes".
-     *
      * @param array<string, string> $modes
+     * @param array{raid?: string, modes?: array<string, string>} $references
      */
     private function createRaidTree(
         ObjectManager $manager,
         GuideCategory $root,
         string $raidName,
         string $raidSlug,
-        array $modes
+        array $modes,
+        array $references = []
     ): void {
         $raidCategory = $this->createCategory(
             name: $raidName,
@@ -258,6 +269,10 @@ final class GuideCategoryFixtures extends Fixture
             parent: $root
         );
         $manager->persist($raidCategory);
+
+        if (isset($references['raid'])) {
+            $this->addReference($references['raid'], $raidCategory);
+        }
 
         $position = 0;
         foreach ($modes as $name => $slug) {
@@ -269,19 +284,20 @@ final class GuideCategoryFixtures extends Fixture
                 parent: $raidCategory
             );
             $manager->persist($modeCategory);
+
+            if (isset($references['modes'][$name])) {
+                $this->addReference($references['modes'][$name], $modeCategory);
+            }
         }
     }
 
-    /**
-     * Crée un enfant simple sous une catégorie parente.
-     */
     private function createSimpleChild(
         ObjectManager $manager,
         GuideCategory $parent,
         string $name,
         string $slug,
         int $position
-    ): void {
+    ): GuideCategory {
         $child = $this->createCategory(
             name: $name,
             slug: $slug,
@@ -291,5 +307,7 @@ final class GuideCategoryFixtures extends Fixture
         );
 
         $manager->persist($child);
+
+        return $child;
     }
 }
