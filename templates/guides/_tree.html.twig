@@ -1,0 +1,18 @@
+{% if nodes is not empty %}
+    <ul class="list-unstyled mb-0">
+        {% for node in nodes %}
+            <li class="mb-2">
+                <a href="{{ path('guides_category_show', { slug: node.category.slug }) }}"
+                   class="link-danger text-decoration-none fw-semibold">
+                    {{ node.category.name }}
+                </a>
+
+                {% if node.children is not empty %}
+                    <div class="ms-4 mt-2">
+                        {% include 'guides/_tree.html.twig' with { nodes: node.children } only %}
+                    </div>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+{% endif %}

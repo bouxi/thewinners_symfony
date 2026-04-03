@@ -8,6 +8,7 @@ use App\Entity\Guide;
 use App\Entity\GuideCategory;
 use App\Repository\GuideCategoryRepository;
 use App\Repository\GuideRepository;
+use App\Service\GuideTreeBuilder;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -18,6 +19,7 @@ final class GuideController extends AbstractController
     public function __construct(
         private readonly GuideCategoryRepository $guideCategoryRepository,
         private readonly GuideRepository $guideRepository,
+        private readonly GuideTreeBuilder $guideTreeBuilder,
     ) {
     }
 
@@ -25,22 +27,13 @@ final class GuideController extends AbstractController
      * Page d'accueil du module Guides.
      *
      * Cette page affiche :
-     * - les catégories racines actives
+     * - l'arborescence des catégories actives
      * - les derniers guides publiés
      */
     #[Route('', name: 'index', methods: ['GET'])]
     public function index(): Response
     {
-        $rootCategories = $this->guideCategoryRepository->findBy(
-            [
-                'parent' => null,
-                'isActive' => true,
-            ],
-            [
-                'position' => 'ASC',
-                'name' => 'ASC',
-            ]
-        );
+        $guideTree = $this->guideTreeBuilder->buildActiveTree();
 
         $latestGuides = $this->guideRepository->findBy(
             [
@@ -54,7 +47,7 @@ final class GuideController extends AbstractController
         );
 
         return $this->render('guides/index.html.twig', [
-            'rootCategories' => $rootCategories,
+            'guideTree' => $guideTree,
             'latestGuides' => $latestGuides,
         ]);
     }
