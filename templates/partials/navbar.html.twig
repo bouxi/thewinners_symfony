@@ -1,5 +1,7 @@
 {# templates/partials/navbar.html.twig #}
 <header>
+    {% set currentRoute = app.request.attributes.get('_route') %}
+
     <nav class="navbar navbar-expand-lg navbar-dark bg-black bg-opacity-75 border-bottom border-danger">
         <div class="container">
 
@@ -28,17 +30,34 @@
                 {# Liens à gauche #}
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ path('app_home') }}">Accueil</a>
+                        <a
+                            class="nav-link {{ currentRoute == 'app_home' ? 'active' : '' }}"
+                            href="{{ path('app_home') }}"
+                            {{ currentRoute == 'app_home' ? 'aria-current="page"' : '' }}
+                        >
+                            Accueil
+                        </a>
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ path('raids_calendar') }}">Raids</a>
+                        <a
+                            class="nav-link {{ currentRoute starts with 'raids_' ? 'active' : '' }}"
+                            href="{{ path('raids_calendar') }}"
+                            {{ currentRoute starts with 'raids_' ? 'aria-current="page"' : '' }}
+                        >
+                            Raids
+                        </a>
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ path('guild_members') }}">Membres</a>
+                        <a
+                            class="nav-link {{ currentRoute == 'guild_members' ? 'active' : '' }}"
+                            href="{{ path('guild_members') }}"
+                            {{ currentRoute == 'guild_members' ? 'aria-current="page"' : '' }}
+                        >
+                            Membres
+                        </a>
                     </li>
-
                 </ul>
 
                 {# Liens à droite #}
@@ -47,15 +66,29 @@
                     {% if app.user %}
 
                         {# Postuler #}
-                        <li class="nav-item">
-                            {% if is_granted('ROLE_USER') and not is_granted('ROLE_RECRUE') and not is_granted('ROLE_MEMBER') and not is_granted('ROLE_VETERAN') and not is_granted('ROLE_OFFICER') %}
-                                <a class="nav-link" href="{{ path('guild_apply') }}">Postuler</a>
-                            {% endif %}
-                        </li>
+                        {% if is_granted('ROLE_USER')
+                            and not is_granted('ROLE_RECRUE')
+                            and not is_granted('ROLE_MEMBER')
+                            and not is_granted('ROLE_VETERAN')
+                            and not is_granted('ROLE_OFFICER') %}
+                            <li class="nav-item">
+                                <a
+                                    class="nav-link {{ currentRoute == 'guild_apply' or currentRoute == 'guild_application_status' ? 'active' : '' }}"
+                                    href="{{ path('guild_apply') }}"
+                                    {{ currentRoute == 'guild_apply' or currentRoute == 'guild_application_status' ? 'aria-current="page"' : '' }}
+                                >
+                                    Postuler
+                                </a>
+                            </li>
+                        {% endif %}
 
                         {# Messages + badge non lus #}
                         <li class="nav-item position-relative">
-                            <a class="nav-link" href="{{ path('app_messages') }}">
+                            <a
+                                class="nav-link {{ currentRoute starts with 'app_messages' ? 'active' : '' }}"
+                                href="{{ path('app_messages') }}"
+                                {{ currentRoute starts with 'app_messages' ? 'aria-current="page"' : '' }}
+                            >
                                 Messages
 
                                 {% set unread = unread_messages_count(app.user) %}
@@ -67,26 +100,33 @@
                             </a>
                         </li>
 
-                        {# Admin (si ROLE_ADMIN) #}
+                        {# Admin #}
                         {% if is_granted('ROLE_ADMIN') %}
                             <li class="nav-item">
-                                <a class="nav-link text-warning fw-bold"
-                                   href="{{ path('admin_dashboard') }}">
+                                <a
+                                    class="nav-link text-warning fw-bold {{ currentRoute starts with 'admin_' ? 'active' : '' }}"
+                                    href="{{ path('admin_dashboard') }}"
+                                    {{ currentRoute starts with 'admin_' ? 'aria-current="page"' : '' }}
+                                >
                                     Admin
                                 </a>
                             </li>
                         {% endif %}
 
+                        {# Ajouter mon perso #}
                         {% if is_granted('ROLE_GM') %}
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ path('admin_personnage_new') }}">
+                                <a
+                                    class="nav-link {{ currentRoute starts with 'admin_personnage_' ? 'active' : '' }}"
+                                    href="{{ path('admin_personnage_new') }}"
+                                    {{ currentRoute starts with 'admin_personnage_' ? 'aria-current="page"' : '' }}
+                                >
                                     Ajouter mon perso
                                 </a>
                             </li>
-                        
                         {% endif %}
 
-                        {# Avatar + pseudo (simple affichage) #}
+                        {# Avatar + pseudo #}
                         <li class="nav-item d-flex align-items-center gap-2">
 
                             {% if app.user.avatar %}
@@ -115,7 +155,11 @@
 
                         {# Mon profil #}
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ path('app_profile') }}">
+                            <a
+                                class="nav-link {{ currentRoute starts with 'app_profile' ? 'active' : '' }}"
+                                href="{{ path('app_profile') }}"
+                                {{ currentRoute starts with 'app_profile' ? 'aria-current="page"' : '' }}
+                            >
                                 Mon profil
                             </a>
                         </li>
@@ -130,14 +174,24 @@
 
                     {% else %}
 
-                        {# Visiteur #}
+                        {# Connexion #}
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ path('app_login') }}">Connexion</a>
+                            <a
+                                class="nav-link {{ currentRoute == 'app_login' ? 'active' : '' }}"
+                                href="{{ path('app_login') }}"
+                                {{ currentRoute == 'app_login' ? 'aria-current="page"' : '' }}
+                            >
+                                Connexion
+                            </a>
                         </li>
 
+                        {# Inscription #}
                         <li class="nav-item">
-                            <a class="btn btn-sm btn-danger ms-lg-2"
-                               href="{{ path('app_register') }}">
+                            <a
+                                class="btn btn-sm btn-danger ms-lg-2 {{ currentRoute == 'app_register' ? 'active' : '' }}"
+                                href="{{ path('app_register') }}"
+                                {{ currentRoute == 'app_register' ? 'aria-current="page"' : '' }}
+                            >
                                 Rejoindre TheWinners
                             </a>
                         </li>
