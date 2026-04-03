@@ -590,3 +590,9 @@ main, section {
         width: 100%;
     }
 }
+
+.navbar .nav-link.active {
+        font-weight: 700;
+        color: #ffffff;
+        text-decoration: underline;
+    }
