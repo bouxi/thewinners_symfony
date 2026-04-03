@@ -1,0 +1,70 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ guide.title }} | Guides | TheWinners{% endblock %}
+
+{% block body %}
+    <section class="container py-5">
+        <nav aria-label="Fil d’Ariane" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{{ path('app_home') }}" class="link-light text-decoration-none">Accueil</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{{ path('guides_index') }}" class="link-light text-decoration-none">Guides</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{{ path('guides_category_show', { slug: guide.category.slug }) }}"
+                       class="link-light text-decoration-none">
+                        {{ guide.category.name }}
+                    </a>
+                </li>
+                <li class="breadcrumb-item active text-danger" aria-current="page">
+                    {{ guide.title }}
+                </li>
+            </ol>
+        </nav>
+
+        <article class="card bg-dark text-light border-danger shadow-sm">
+            <div class="card-body p-4 p-lg-5">
+                <header class="mb-4">
+                    <h1 class="text-danger fw-bold mb-3">{{ guide.title }}</h1>
+
+                    <div class="small text-light-emphasis d-flex flex-wrap gap-3">
+                        <span>
+                            Catégorie :
+                            <a href="{{ path('guides_category_show', { slug: guide.category.slug }) }}"
+                               class="link-danger text-decoration-none">
+                                {{ guide.category.name }}
+                            </a>
+                        </span>
+
+                        <span>
+                            Publication :
+                            {% if guide.publishedAt %}
+                                {{ guide.publishedAt|date('d/m/Y') }}
+                            {% else %}
+                                non renseignée
+                            {% endif %}
+                        </span>
+
+                        {% if guide.author %}
+                            <span>
+                                Auteur : {{ guide.author.pseudo }}
+                            </span>
+                        {% endif %}
+                    </div>
+                </header>
+
+                {% if guide.excerpt %}
+                    <div class="alert alert-secondary mb-4">
+                        {{ guide.excerpt }}
+                    </div>
+                {% endif %}
+
+                <div class="guide-content">
+                    {{ guide.content|nl2br }}
+                </div>
+            </div>
+        </article>
+    </section>
+{% endblock %}
