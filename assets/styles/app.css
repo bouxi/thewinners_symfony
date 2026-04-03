@@ -592,7 +592,11 @@ main, section {
 }
 
 .navbar .nav-link.active {
-        font-weight: 700;
-        color: #ffffff;
-        text-decoration: underline;
-    }
+    font-weight: 700;
+    color: #ffffff;
+    text-decoration: underline;
+}
+
+.navbar .dropdown-menu {
+    min-width: 14rem;
+}

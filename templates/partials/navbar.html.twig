@@ -1,6 +1,7 @@
 {# templates/partials/navbar.html.twig #}
 <header>
     {% set currentRoute = app.request.attributes.get('_route') %}
+    {% set guideRootCategories = guide_root_categories() %}
 
     <nav class="navbar navbar-expand-lg navbar-dark bg-black bg-opacity-75 border-bottom border-danger">
         <div class="container">
@@ -57,6 +58,44 @@
                         >
                             Membres
                         </a>
+                    </li>
+
+                    {# Guides avec dropdown simple niveau 1 #}
+                    <li class="nav-item dropdown">
+                        <a
+                            class="nav-link dropdown-toggle {{ currentRoute starts with 'guides_' ? 'active' : '' }}"
+                            href="{{ path('guides_index') }}"
+                            id="guidesNavbarDropdown"
+                            role="button"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false"
+                            {{ currentRoute starts with 'guides_' ? 'aria-current="page"' : '' }}
+                        >
+                            Guides
+                        </a>
+
+                        <ul class="dropdown-menu dropdown-menu-dark border-danger shadow"
+                            aria-labelledby="guidesNavbarDropdown">
+                            <li>
+                                <a class="dropdown-item"
+                                   href="{{ path('guides_index') }}">
+                                    Tous les guides
+                                </a>
+                            </li>
+
+                            {% if guideRootCategories is not empty %}
+                                <li><hr class="dropdown-divider"></li>
+
+                                {% for category in guideRootCategories %}
+                                    <li>
+                                        <a class="dropdown-item"
+                                           href="{{ path('guides_category_show', { slug: category.slug }) }}">
+                                            {{ category.name }}
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            {% endif %}
+                        </ul>
                     </li>
                 </ul>
 
