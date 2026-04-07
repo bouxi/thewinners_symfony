@@ -105,4 +105,23 @@ final class AdminGuideController extends AbstractController
             'pageTitle' => 'Modifier un guide',
         ]);
     }
+
+    #[Route('/{id}/delete', name: 'delete', methods: ['POST'])]
+    public function delete(Request $request, Guide $guide): Response
+    {
+        $submittedToken = $request->request->get('_token');
+
+        if (!$this->isCsrfTokenValid('delete_guide_' . $guide->getId(), (string) $submittedToken)) {
+            $this->addFlash('danger', 'Jeton CSRF invalide. Suppression annulée.');
+
+            return $this->redirectToRoute('admin_guides_index');
+        }
+
+        $this->entityManager->remove($guide);
+        $this->entityManager->flush();
+
+        $this->addFlash('success', 'Le guide a été supprimé avec succès.');
+
+        return $this->redirectToRoute('admin_guides_index');
+    }
 }

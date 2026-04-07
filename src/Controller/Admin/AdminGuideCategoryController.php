@@ -105,4 +105,35 @@ final class AdminGuideCategoryController extends AbstractController
             'pageTitle' => 'Modifier une catégorie de guide',
         ]);
     }
+
+    #[Route('/{id}/delete', name: 'delete', methods: ['POST'])]
+    public function delete(Request $request, GuideCategory $category): Response
+    {
+        $submittedToken = $request->request->get('_token');
+
+        if (!$this->isCsrfTokenValid('delete_guide_category_' . $category->getId(), (string) $submittedToken)) {
+            $this->addFlash('danger', 'Jeton CSRF invalide. Suppression annulée.');
+
+            return $this->redirectToRoute('admin_guides_categories_index');
+        }
+
+        if (!$category->getChildren()->isEmpty()) {
+            $this->addFlash('danger', 'Impossible de supprimer cette catégorie : elle contient des sous-catégories.');
+
+            return $this->redirectToRoute('admin_guides_categories_index');
+        }
+
+        if (!$category->getGuides()->isEmpty()) {
+            $this->addFlash('danger', 'Impossible de supprimer cette catégorie : elle contient encore des guides.');
+
+            return $this->redirectToRoute('admin_guides_categories_index');
+        }
+
+        $this->entityManager->remove($category);
+        $this->entityManager->flush();
+
+        $this->addFlash('success', 'La catégorie a été supprimée avec succès.');
+
+        return $this->redirectToRoute('admin_guides_categories_index');
+    }
 }
