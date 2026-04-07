@@ -38,7 +38,7 @@ final class GuideType extends AbstractType
 
             ->add('excerpt', TextareaType::class, [
                 'label' => 'Extrait',
-                'required' => false,
+                'required' => false, 
                 'attr' => [
                     'rows' => 3,
                     'placeholder' => 'Petit résumé affiché dans les listes et cartes.',
