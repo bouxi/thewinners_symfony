@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Controller\Admin;
 
 use App\Entity\Guide;
+use App\Entity\GuideCategory;
 use App\Form\Admin\GuideType;
+use App\Repository\GuideCategoryRepository;
 use App\Repository\GuideRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -20,25 +22,56 @@ final class AdminGuideController extends AbstractController
 {
     public function __construct(
         private readonly GuideRepository $guideRepository,
+        private readonly GuideCategoryRepository $guideCategoryRepository,
         private readonly EntityManagerInterface $entityManager,
     ) {
     }
 
     #[Route('', name: 'index', methods: ['GET'])]
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        $guides = $this->guideRepository->createQueryBuilder('g')
-            ->leftJoin('g.category', 'c')
-            ->addSelect('c')
-            ->leftJoin('g.author', 'a')
-            ->addSelect('a')
-            ->orderBy('g.updatedAt', 'DESC')
-            ->addOrderBy('g.title', 'ASC')
+        $query = trim((string) $request->query->get('q', ''));
+        $status = trim((string) $request->query->get('status', ''));
+        $categoryId = $request->query->get('category');
+        $page = max(1, (int) $request->query->get('page', 1));
+        $limit = 10;
+
+        $selectedCategory = null;
+
+        if ($categoryId !== null && $categoryId !== '') {
+            $selectedCategory = $this->guideCategoryRepository->find((int) $categoryId);
+
+            if (!$selectedCategory instanceof GuideCategory) {
+                $selectedCategory = null;
+            }
+        }
+
+        $result = $this->guideRepository->findAdminList(
+            $query !== '' ? $query : null,
+            $status !== '' ? $status : null,
+            $selectedCategory,
+            $page,
+            $limit
+        );
+
+        $categories = $this->guideCategoryRepository->createQueryBuilder('gc')
+            ->andWhere('gc.isActive = :active')
+            ->setParameter('active', true)
+            ->orderBy('gc.position', 'ASC')
+            ->addOrderBy('gc.name', 'ASC')
             ->getQuery()
             ->getResult();
 
         return $this->render('admin/guides/index.html.twig', [
-            'guides' => $guides,
+            'guides' => $result['items'],
+            'total' => $result['total'],
+            'page' => $result['page'],
+            'pages' => $result['pages'],
+            'limit' => $result['limit'],
+            'query' => $query,
+            'status' => $status,
+            'categories' => $categories,
+            'selectedCategory' => $selectedCategory,
         ]);
     }
 

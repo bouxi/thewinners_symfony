@@ -19,6 +19,66 @@
             </div>
         </div>
 
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <label for="filter-q" class="form-label">Recherche</label>
+                        <input
+                            type="text"
+                            id="filter-q"
+                            name="q"
+                            class="form-control"
+                            value="{{ query }}"
+                            placeholder="Titre ou slug..."
+                        >
+                    </div>
+
+                    <div class="col-md-3">
+                        <label for="filter-status" class="form-label">Statut</label>
+                        <select id="filter-status" name="status" class="form-select">
+                            <option value="">Tous</option>
+                            <option value="published" {{ status == 'published' ? 'selected' : '' }}>Publié</option>
+                            <option value="draft" {{ status == 'draft' ? 'selected' : '' }}>Brouillon</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label for="filter-category" class="form-label">Catégorie</label>
+                        <select id="filter-category" name="category" class="form-select">
+                            <option value="">Toutes</option>
+                            {% for category in categories %}
+                                <option
+                                    value="{{ category.id }}"
+                                    {{ selectedCategory and selectedCategory.id == category.id ? 'selected' : '' }}
+                                >
+                                    {{ category.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-2 d-flex align-items-end gap-2">
+                        <button type="submit" class="btn btn-primary w-100">
+                            Filtrer
+                        </button>
+                    </div>
+
+                    <div class="col-12">
+                        <a href="{{ path('admin_guides_index') }}" class="btn btn-outline-secondary btn-sm">
+                            Réinitialiser les filtres
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="text-muted small">
+                {{ total }} guide{{ total > 1 ? 's' : '' }} trouvé{{ total > 1 ? 's' : '' }}
+            </div>
+        </div>
+
         {% if guides is not empty %}
             <div class="card shadow-sm border-0">
                 <div class="table-responsive">
@@ -123,9 +183,44 @@
                     </table>
                 </div>
             </div>
+
+            {% if pages > 1 %}
+                <nav class="mt-4" aria-label="Pagination des guides">
+                    <ul class="pagination">
+                        {% set currentParams = {
+                            q: query,
+                            status: status,
+                            category: selectedCategory ? selectedCategory.id : ''
+                        } %}
+
+                        <li class="page-item {{ page <= 1 ? 'disabled' : '' }}">
+                            <a class="page-link"
+                               href="{{ page > 1 ? path('admin_guides_index', currentParams|merge({ page: page - 1 })) : '#' }}">
+                                Précédent
+                            </a>
+                        </li>
+
+                        {% for p in 1..pages %}
+                            <li class="page-item {{ p == page ? 'active' : '' }}">
+                                <a class="page-link"
+                                   href="{{ path('admin_guides_index', currentParams|merge({ page: p })) }}">
+                                    {{ p }}
+                                </a>
+                            </li>
+                        {% endfor %}
+
+                        <li class="page-item {{ page >= pages ? 'disabled' : '' }}">
+                            <a class="page-link"
+                               href="{{ page < pages ? path('admin_guides_index', currentParams|merge({ page: page + 1 })) : '#' }}">
+                                Suivant
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            {% endif %}
         {% else %}
             <div class="alert alert-secondary mb-0">
-                Aucun guide n’est encore enregistré.
+                Aucun guide ne correspond aux filtres sélectionnés.
             </div>
         {% endif %}
     </div>
