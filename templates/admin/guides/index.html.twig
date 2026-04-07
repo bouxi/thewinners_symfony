@@ -88,7 +88,7 @@
                                     </td>
 
                                     <td class="text-end">
-                                        <div class="d-inline-flex gap-2">
+                                        <div class="d-inline-flex flex-wrap justify-content-end gap-2">
                                             <a href="{{ path('admin_guides_edit', { id: guide.id }) }}"
                                                class="btn btn-sm btn-outline-primary">
                                                 Modifier
@@ -102,6 +102,19 @@
                                                     Voir
                                                 </a>
                                             {% endif %}
+
+                                            <form method="post"
+                                                  action="{{ path('admin_guides_delete', { id: guide.id }) }}"
+                                                  onsubmit="return confirm('Confirmer la suppression de ce guide ?');"
+                                                  class="d-inline">
+                                                <input type="hidden"
+                                                       name="_token"
+                                                       value="{{ csrf_token('delete_guide_' ~ guide.id) }}">
+
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                    Supprimer
+                                                </button>
+                                            </form>
                                         </div>
                                     </td>
                                 </tr>
