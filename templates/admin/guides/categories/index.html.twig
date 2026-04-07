@@ -1,0 +1,76 @@
+{% extends 'admin/admin_base.html.twig' %}
+
+{% block title %}Catégories de guides | Admin{% endblock %}
+
+{% block body %}
+    <div class="container py-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+            <div>
+                <h1 class="h2 mb-1">Catégories de guides</h1>
+                <p class="text-muted mb-0">
+                    Gérez l’arborescence du module Guides.
+                </p>
+            </div>
+
+            <div>
+                <a href="{{ path('admin_guides_categories_new') }}" class="btn btn-danger">
+                    + Nouvelle catégorie
+                </a>
+            </div>
+        </div>
+
+        {% if categories is not empty %}
+            <div class="card shadow-sm border-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Nom</th>
+                                <th>Slug</th>
+                                <th>Parent</th>
+                                <th>Position</th>
+                                <th>Statut</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for category in categories %}
+                                <tr>
+                                    <td>{{ category.id }}</td>
+                                    <td class="fw-semibold">{{ category.name }}</td>
+                                    <td><code>{{ category.slug }}</code></td>
+                                    <td>
+                                        {% if category.parent %}
+                                            {{ category.parent.name }}
+                                        {% else %}
+                                            <span class="text-muted">Racine</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ category.position }}</td>
+                                    <td>
+                                        {% if category.isActive %}
+                                            <span class="badge text-bg-success">Active</span>
+                                        {% else %}
+                                            <span class="badge text-bg-secondary">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="{{ path('admin_guides_categories_edit', { id: category.id }) }}"
+                                           class="btn btn-sm btn-outline-primary">
+                                            Modifier
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {% else %}
+            <div class="alert alert-secondary mb-0">
+                Aucune catégorie de guide n’est encore enregistrée.
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
