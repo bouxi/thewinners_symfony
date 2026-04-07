@@ -1,0 +1,73 @@
+{% extends 'admin/admin_base.html.twig' %}
+
+{% block title %}{{ pageTitle }} | Admin{% endblock %}
+
+{% block body %}
+    <div class="container py-4">
+        <div class="mb-4">
+            <h1 class="h2 mb-1">{{ pageTitle }}</h1>
+            <p class="text-muted mb-0">
+                Rédigez et organisez les contenus du module Guides.
+            </p>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                {{ form_start(form) }}
+                    <div class="row g-3">
+                        <div class="col-12">
+                            {{ form_row(form.title) }}
+                        </div>
+
+                        <div class="col-12">
+                            {{ form_row(form.slug) }}
+                        </div>
+
+                        <div class="col-12">
+                            {{ form_row(form.excerpt) }}
+                        </div>
+
+                        <div class="col-12">
+                            {{ form_row(form.content) }}
+                        </div>
+
+                        <div class="col-md-6">
+                            {{ form_row(form.category) }}
+                        </div>
+
+                        <div class="col-md-6">
+                            {{ form_row(form.featuredImage) }}
+                        </div>
+
+                        <div class="col-md-6">
+                            {{ form_row(form.isPublished) }}
+                        </div>
+
+                        <div class="col-md-6">
+                            {{ form_row(form.publishedAt) }}
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-sm-row gap-2 mt-4">
+                        <button type="submit" class="btn btn-danger">
+                            Enregistrer
+                        </button>
+
+                        <a href="{{ path('admin_guides_index') }}" class="btn btn-outline-secondary">
+                            Retour à la liste
+                        </a>
+
+                        {% if guide.id and guide.isPublished %}
+                            <a href="{{ path('guides_show', { slug: guide.slug }) }}"
+                               class="btn btn-outline-primary"
+                               target="_blank"
+                               rel="noopener">
+                                Voir la page publique
+                            </a>
+                        {% endif %}
+                    </div>
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+{% endblock %}

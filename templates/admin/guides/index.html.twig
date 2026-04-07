@@ -1,0 +1,119 @@
+{% extends 'admin/admin_base.html.twig' %}
+
+{% block title %}Guides | Admin{% endblock %}
+
+{% block body %}
+    <div class="container py-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+            <div>
+                <h1 class="h2 mb-1">Guides</h1>
+                <p class="text-muted mb-0">
+                    Gérez les contenus du module Guides.
+                </p>
+            </div>
+
+            <div>
+                <a href="{{ path('admin_guides_new') }}" class="btn btn-danger">
+                    + Nouveau guide
+                </a>
+            </div>
+        </div>
+
+        {% if guides is not empty %}
+            <div class="card shadow-sm border-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Titre</th>
+                                <th>Catégorie</th>
+                                <th>Auteur</th>
+                                <th>Statut</th>
+                                <th>Publication</th>
+                                <th>Mise à jour</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for guide in guides %}
+                                <tr>
+                                    <td>{{ guide.id }}</td>
+
+                                    <td>
+                                        <div class="fw-semibold">{{ guide.title }}</div>
+                                        <div class="small text-muted">
+                                            <code>{{ guide.slug }}</code>
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        {% if guide.category %}
+                                            {{ guide.category.name }}
+                                        {% else %}
+                                            <span class="text-muted">Aucune</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                        {% if guide.author %}
+                                            {{ guide.author.pseudo }}
+                                        {% else %}
+                                            <span class="text-muted">Non défini</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                        {% if guide.isPublished %}
+                                            <span class="badge text-bg-success">Publié</span>
+                                        {% else %}
+                                            <span class="badge text-bg-secondary">Brouillon</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                        {% if guide.publishedAt %}
+                                            {{ guide.publishedAt|date('d/m/Y H:i') }}
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                        {% if guide.updatedAt %}
+                                            {{ guide.updatedAt|date('d/m/Y H:i') }}
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td class="text-end">
+                                        <div class="d-inline-flex gap-2">
+                                            <a href="{{ path('admin_guides_edit', { id: guide.id }) }}"
+                                               class="btn btn-sm btn-outline-primary">
+                                                Modifier
+                                            </a>
+
+                                            {% if guide.isPublished %}
+                                                <a href="{{ path('guides_show', { slug: guide.slug }) }}"
+                                                   class="btn btn-sm btn-outline-danger"
+                                                   target="_blank"
+                                                   rel="noopener">
+                                                    Voir
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {% else %}
+            <div class="alert alert-secondary mb-0">
+                Aucun guide n’est encore enregistré.
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
