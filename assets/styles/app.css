@@ -595,3 +595,27 @@ main, section {
 .navbar .dropdown-menu {
     min-width: 14rem;
 }
+
+.guide-content h1,
+.guide-content h2,
+.guide-content h3,
+.guide-content h4 {
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.guide-content p,
+.guide-content ul,
+.guide-content ol {
+    margin-bottom: 1rem;
+}
+
+.guide-content table {
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+.guide-content img {
+    max-width: 100%;
+    height: auto;
+}

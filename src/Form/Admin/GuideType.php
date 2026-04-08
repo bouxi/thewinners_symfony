@@ -50,6 +50,7 @@ final class GuideType extends AbstractType
                 'attr' => [
                     'rows' => 14,
                     'placeholder' => 'Rédige ici le contenu complet du guide...',
+                    'class' => 'js-rich-editor',
                 ],
                 'help' => 'Pour l’instant, le contenu est saisi en texte brut. Un éditeur riche pourra être ajouté ensuite.',
             ])
