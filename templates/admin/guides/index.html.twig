@@ -109,7 +109,9 @@
 
                                     <td>
                                         {% if guide.category %}
-                                            {{ guide.category.name }}
+                                            <span title="{{ guide.category.breadcrumbName }}">
+                                                {{ guide.category.breadcrumbName }}
+                                            </span>
                                         {% else %}
                                             <span class="text-muted">Aucune</span>
                                         {% endif %}

@@ -65,17 +65,7 @@ final class GuideType extends AbstractType
 
             ->add('category', EntityType::class, [
                 'class' => GuideCategory::class,
-                'choice_label' => static function (GuideCategory $category): string {
-                    $parts = [];
-                    $current = $category;
-
-                    while ($current !== null) {
-                        array_unshift($parts, $current->getName());
-                        $current = $current->getParent();
-                    }
-
-                    return implode(' > ', $parts);
-                },
+                'choice_label' => static fn (GuideCategory $category): string => $category->getBreadcrumbName(),
                 'label' => 'Catégorie',
                 'placeholder' => '— Choisir une catégorie —',
                 'query_builder' => static function (GuideCategoryRepository $repository) {

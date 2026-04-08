@@ -302,4 +302,23 @@ class GuideCategory
     {
         return $this->parent === null;
     }
+
+        /**
+     * Retourne le chemin hiérarchique complet de la catégorie.
+     *
+     * Exemple :
+     * Classes > Démoniste > Affliction
+     */
+    public function getBreadcrumbName(string $separator = ' > '): string
+    {
+        $parts = [];
+        $current = $this;
+
+        while ($current !== null) {
+            array_unshift($parts, $current->getName());
+            $current = $current->getParent();
+        }
+
+        return implode($separator, $parts);
+    }
 }
