@@ -13,6 +13,8 @@ parameters:
     app.legal_versions.terms: '1.0'
     app.legal_versions.cookies: '1.2'
 
+    guide_images_directory: '%kernel.project_dir%/public/uploads/guides'
+
 services:
     # default configuration for services in *this* file
     _defaults:
@@ -30,3 +32,7 @@ services:
             $maxSize: '%app.avatar_max_size%'
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+    App\Service\GuideImageUploader:
+        arguments:
+            $guideImagesDirectory: '%guide_images_directory%'
