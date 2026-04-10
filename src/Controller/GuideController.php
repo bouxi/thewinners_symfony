@@ -33,8 +33,10 @@ final class GuideController extends AbstractController
     #[Route('', name: 'index', methods: ['GET'])]
     public function index(): Response
     {
+        // On construit l'arborescence des catégories actives.
         $guideTree = $this->guideTreeBuilder->buildActiveTree();
 
+        // On récupère les 6 derniers guides publiés.
         $latestGuides = $this->guideRepository->findBy(
             [
                 'isPublished' => true,
@@ -46,6 +48,7 @@ final class GuideController extends AbstractController
             6
         );
 
+        // On affiche la page d'accueil du module Guides.
         return $this->render('guides/index.html.twig', [
             'guideTree' => $guideTree,
             'latestGuides' => $latestGuides,
@@ -59,28 +62,37 @@ final class GuideController extends AbstractController
      * - la catégorie courante
      * - ses sous-catégories actives
      * - les guides publiés liés à cette catégorie
+     *
+     * Si la catégorie n'existe pas ou n'est pas active,
+     * on déclenche une erreur 404.
      */
     #[Route('/category/{slug}', name: 'category_show', methods: ['GET'])]
     public function showCategory(string $slug): Response
     {
+        // On recherche une catégorie active correspondant au slug demandé.
         $category = $this->guideCategoryRepository->findOneBy([
             'slug' => $slug,
             'isActive' => true,
         ]);
 
+        // Si aucune catégorie active n'est trouvée, on renvoie une 404.
+        // Symfony affichera alors la page d'erreur 404 personnalisée en production.
         if (!$category instanceof GuideCategory) {
             throw $this->createNotFoundException('La catégorie demandée est introuvable.');
         }
 
+        // On récupère uniquement les sous-catégories actives.
         $children = $category->getChildren()
             ->filter(static fn (GuideCategory $child): bool => $child->isActive())
             ->toArray();
 
+        // On trie les sous-catégories par position, puis par nom.
         usort(
             $children,
             static fn (GuideCategory $a, GuideCategory $b): int => [$a->getPosition(), $a->getName()] <=> [$b->getPosition(), $b->getName()]
         );
 
+        // On récupère les guides publiés liés à cette catégorie.
         $guides = $this->guideRepository->findBy(
             [
                 'category' => $category,
@@ -92,6 +104,7 @@ final class GuideController extends AbstractController
             ]
         );
 
+        // On affiche la page de détail de la catégorie.
         return $this->render('guides/category_show.html.twig', [
             'category' => $category,
             'children' => $children,
@@ -101,19 +114,26 @@ final class GuideController extends AbstractController
 
     /**
      * Affiche le détail d'un guide publié à partir de son slug.
+     *
+     * Si le guide n'existe pas ou n'est pas publié,
+     * on déclenche une erreur 404.
      */
     #[Route('/{slug}', name: 'show', methods: ['GET'])]
     public function show(string $slug): Response
     {
+        // On recherche un guide publié correspondant au slug demandé.
         $guide = $this->guideRepository->findOneBy([
             'slug' => $slug,
             'isPublished' => true,
         ]);
 
+        // Si aucun guide publié n'est trouvé, on renvoie une 404.
+        // Symfony affichera alors la page d'erreur 404 personnalisée en production.
         if (!$guide instanceof Guide) {
             throw $this->createNotFoundException('Le guide demandé est introuvable.');
         }
 
+        // On affiche la page de détail du guide.
         return $this->render('guides/show.html.twig', [
             'guide' => $guide,
         ]);
