@@ -619,3 +619,13 @@ main, section {
     max-width: 100%;
     height: auto;
 }
+
+/* style page errors */
+.card.bg-dark {
+    background: linear-gradient(180deg, #1b1b1b 0%, #111 100%);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.min-vh-100 {
+    min-height: 100vh;
+}

@@ -1,0 +1,18 @@
+{% extends 'bundles/TwigBundle/Exception/_error_layout.html.twig' %}
+
+{% block title %}500 - Erreur serveur | TheWinners{% endblock %}
+
+{% block error_content %}
+    <div class="display-1 fw-bold text-danger mb-3">500</div>
+
+    <h1 class="h2 fw-bold mb-3">Erreur interne du serveur</h1>
+
+    <p class="lead text-white-50 mb-4">
+        Une erreur inattendue est survenue dans les terres de TheWinners.
+        Nos ingénieurs gobelins travaillent déjà à rétablir la situation.
+    </p>
+
+    <div class="alert alert-secondary border-0 bg-black bg-opacity-25 text-light mb-0">
+        Réessayez dans quelques instants.
+    </div>
+{% endblock %}

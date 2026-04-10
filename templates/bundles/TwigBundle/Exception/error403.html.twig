@@ -1,0 +1,18 @@
+{% extends 'bundles/TwigBundle/Exception/_error_layout.html.twig' %}
+
+{% block title %}403 - Accès refusé | TheWinners{% endblock %}
+
+{% block error_content %}
+    <div class="display-1 fw-bold text-warning mb-3">403</div>
+
+    <h1 class="h2 fw-bold mb-3">Accès refusé</h1>
+
+    <p class="lead text-white-50 mb-4">
+        Vous n’avez pas les autorisations nécessaires pour accéder à cette zone.
+        Les portes de cette forteresse vous restent fermées.
+    </p>
+
+    <div class="alert alert-secondary border-0 bg-black bg-opacity-25 text-light mb-0">
+        Connectez-vous avec un compte autorisé ou contactez un administrateur si nécessaire.
+    </div>
+{% endblock %}
