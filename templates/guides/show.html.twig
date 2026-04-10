@@ -55,6 +55,16 @@
                     </div>
                 </header>
 
+                {% if guide.featuredImage %}
+                    <div class="mb-4">
+                        <img
+                            src="{{ asset(guide.featuredImage) }}"
+                            alt="{{ guide.title }}"
+                            class="img-fluid rounded shadow-sm border"
+                        >
+                    </div>
+                {% endif %}
+
                 {% if guide.excerpt %}
                     <div class="alert alert-secondary mb-4">
                         {{ guide.excerpt }}

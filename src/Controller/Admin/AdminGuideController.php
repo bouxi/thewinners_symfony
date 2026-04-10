@@ -9,8 +9,10 @@ use App\Entity\GuideCategory;
 use App\Form\Admin\GuideType;
 use App\Repository\GuideCategoryRepository;
 use App\Repository\GuideRepository;
+use App\Service\GuideImageUploader;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -24,6 +26,7 @@ final class AdminGuideController extends AbstractController
         private readonly GuideRepository $guideRepository,
         private readonly GuideCategoryRepository $guideCategoryRepository,
         private readonly EntityManagerInterface $entityManager,
+        private readonly GuideImageUploader $guideImageUploader,
     ) {
     }
 
@@ -91,6 +94,18 @@ final class AdminGuideController extends AbstractController
                 $guide->setAuthor($user);
             }
 
+            /** @var UploadedFile|null $uploadedFile */
+            $uploadedFile = $form->get('featuredImageFile')->getData();
+
+            if ($uploadedFile instanceof UploadedFile) {
+                $uploadedPath = $this->guideImageUploader->upload(
+                    $uploadedFile,
+                    $guide->getTitle() !== '' ? $guide->getTitle() : 'guide'
+                );
+
+                $guide->setFeaturedImage($uploadedPath);
+            }
+
             if ($guide->isPublished() && $guide->getPublishedAt() === null) {
                 $guide->setPublishedAt(new \DateTimeImmutable());
             }
@@ -113,10 +128,28 @@ final class AdminGuideController extends AbstractController
     #[Route('/{id}/edit', name: 'edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Guide $guide): Response
     {
+        $oldImage = $guide->getFeaturedImage();
+
         $form = $this->createForm(GuideType::class, $guide);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            /** @var UploadedFile|null $uploadedFile */
+            $uploadedFile = $form->get('featuredImageFile')->getData();
+
+            if ($uploadedFile instanceof UploadedFile) {
+                $uploadedPath = $this->guideImageUploader->upload(
+                    $uploadedFile,
+                    $guide->getTitle() !== '' ? $guide->getTitle() : 'guide'
+                );
+
+                $guide->setFeaturedImage($uploadedPath);
+
+                if ($oldImage !== null && $oldImage !== '') {
+                    $this->guideImageUploader->remove($oldImage);
+                }
+            }
+
             if ($guide->isPublished() && $guide->getPublishedAt() === null) {
                 $guide->setPublishedAt(new \DateTimeImmutable());
             }
@@ -150,8 +183,14 @@ final class AdminGuideController extends AbstractController
             return $this->redirectToRoute('admin_guides_index');
         }
 
+        $featuredImage = $guide->getFeaturedImage();
+
         $this->entityManager->remove($guide);
         $this->entityManager->flush();
+
+        if ($featuredImage !== null && $featuredImage !== '') {
+            $this->guideImageUploader->remove($featuredImage);
+        }
 
         $this->addFlash('success', 'Le guide a été supprimé avec succès.');
 

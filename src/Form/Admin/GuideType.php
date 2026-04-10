@@ -15,6 +15,8 @@ use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
+use Symfony\Component\Validator\Constraints\File;
 
 final class GuideType extends AbstractType
 {
@@ -52,16 +54,24 @@ final class GuideType extends AbstractType
                     'placeholder' => 'Rédige ici le contenu complet du guide...',
                     'class' => 'js-rich-editor',
                 ],
-                'help' => 'Pour l’instant, le contenu est saisi en texte brut. Un éditeur riche pourra être ajouté ensuite.',
             ])
 
-            ->add('featuredImage', TextType::class, [
+            ->add('featuredImageFile', FileType::class, [
                 'label' => 'Image mise en avant',
+                'mapped' => false,
                 'required' => false,
-                'attr' => [
-                    'placeholder' => 'Ex : uploads/guides/mon-image.jpg',
+                'help' => 'Formats recommandés : JPG, PNG, WEBP. Taille max : 2 Mo.',
+                'constraints' => [
+                    new File(
+                        maxSize: '2M',
+                        mimeTypes: [
+                            'image/jpeg',
+                            'image/png',
+                            'image/webp',
+                        ],
+                        mimeTypesMessage: 'Merci d’uploader une image valide (JPG, PNG ou WEBP).',
+                    )
                 ],
-                'help' => 'Chemin ou identifiant de l’image. L’upload réel pourra être ajouté plus tard.',
             ])
 
             ->add('category', EntityType::class, [
