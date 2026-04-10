@@ -8,9 +8,11 @@ import './stimulus_bootstrap.js';
 // import './styles/app.css';
 import './js/personnage-form.js';
 import { initCookieConsent } from './js/cookie-consent.js';
+import { initGuideTinyMce } from './js/admin/tinymce-guides.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     initCookieConsent();
+    initGuideTinyMce();
 });
 
 console.log('This log comes from assets/app.js - welcome to AssetMapper! 🎉');
